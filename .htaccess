@@ -1,0 +1,37 @@
+# ===================================================
+# Root .htaccess - redirect all traffic to /public
+# Protect sensitive files and directories
+# ===================================================
+
+# Disable directory listings
+Options -Indexes
+
+# Force HTTPS (optional)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTPS} !=on
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# Protect sensitive files
+<FilesMatch "^\.env$|^\.gitignore$|^composer.*|^package.*|^phpunit.xml$">
+    Require all denied
+</FilesMatch>
+
+# Protect sensitive directories
+RedirectMatch 403 ^/(app|bootstrap|config|database|resources|routes|storage|tests|vendor)(/.*)?$
+
+
+<IfModule mod_rewrite.c>
+# That was ONLY to protect you from 500 errors
+# if your server did not have mod_rewrite enabled
+
+RewriteEngine On
+# RewriteBase /
+# NOT needed unless you're using mod_alias to redirect
+
+RewriteCond %{REQUEST_URI} !/public
+RewriteRule ^(.*)$ public/$1 [L]
+# Direct all requests to /public folder
+
+</IfModule>
