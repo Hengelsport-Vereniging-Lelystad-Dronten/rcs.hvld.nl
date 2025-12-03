@@ -69,7 +69,7 @@ class RecidiveController extends Controller
             $overtredingCode = $overtredingType->code;
             
             // Converteer de optionele lookback_years naar lookbackMonths (service verwacht maanden).
-            $lookbackYears = $validated['lookback_years'] ?? 2;
+            $lookbackYears = $validated['lookback_years'] ?? 1;
             $lookbackMonths = $lookbackYears * 12;
 
             // 2. Roep de service aan met de correcte methode en de opgezochte CODE

@@ -14,12 +14,17 @@ use Illuminate\Support\Facades\Log; // Log hersteld voor debuggen
  * De check bepaalt de geadviseerde strafmaat door de historie van de visser
  * te bekijken en, indien nodig, de strafmaat te escaleren.
  *
- * FIX: De databasequery is nu uiterst robuust gemaakt om rekening te houden met
+ * FIX: De databasequery is uiterst robuust gemaakt om rekening te houden met
  * zowel VARCHAR-waarden (met voorloopnullen) als INTEGER-waarden in de kolom
  * 'vispasnummer', wat de oorzaak is van de historie_count = 0.
  *
+ * NIEUWE LOGICA: Bij de 3e overtreding (historie_count >= 2) wordt direct gezocht
+ * naar de Strafmaat met code 'PV' (Proces-Verbaal) en deze wordt geadviseerd.
+ *
  * BELANGRIJK: De output sleutel is TIJDELIJK teruggezet naar 'bericht'
  * om de 500 fout in RecidiveController.php op te lossen.
+ *
+ * @package App\Services
  */
 class RecidiveCheckService
 {
@@ -50,6 +55,7 @@ class RecidiveCheckService
         // Bepaal de standaard strafmaat ID en het object.
         $defaultStrafmaatId = $overtredingType->defaultStrafmaat_id;
         $huidigeStrafmaat = $overtredingType->defaultStrafmaat;
+        $geenDefaultMelding = null; // Standaard geen melding over ontbrekende default
 
         // Als er geen standaard strafmaat is, zoek dan de lichtste strafmaat om mee te beginnen.
         if (!$huidigeStrafmaat) {
@@ -109,7 +115,7 @@ class RecidiveCheckService
         // Log het resultaat van de telling
         Log::info('Recidive Check Resultaat:', ['historie_count' => $count]);
 
-        // 4. Controleer op recidive
+        // 4. Controleer op recidive (geen eerdere overtredingen)
         if ($count === 0) {
             $bericht = $geenDefaultMelding 
                 ? "{$geenDefaultMelding} Geen recidive geconstateerd." 
@@ -125,6 +131,34 @@ class RecidiveCheckService
 
         // 5. Recidive is geconstateerd - Bepaal de escalatie
         
+        // EERSTE CHECK: Implementatie voor de 3e overtreding (historie_count >= 2).
+        // De klant wil bij de 3e keer direct de PV uitschrijven wegens hardleersheid.
+        if ($count >= 2) {
+            // Zoek de specifieke Strafmaat met code 'PV' (Proces-Verbaal).
+            $pvStrafmaat = Strafmaat::where('code', 'PV')->first();
+
+            if ($pvStrafmaat) {
+                // De PV-strafmaat is gevonden, pas deze direct toe en overrule de order_id escalatie.
+                $geescaleerdeStrafmaat = $pvStrafmaat;
+
+                $bericht = $geenDefaultMelding
+                    // Met melding over ontbrekende default
+                    ? "🚨 DERDE Overtreding (of meer)! Visser is hardleers ({$count} eerdere). {$geenDefaultMelding} Directe escalatie naar '{$pvStrafmaat->omschrijving}' (PV) geadviseerd."
+                    // Standaard melding
+                    : "🚨 DERDE Overtreding (of meer)! Visser is hardleers ({$count} eerdere) in de laatste {$lookbackMonths} maanden. Directe escalatie naar '{$pvStrafmaat->omschrijving}' (PV) geadviseerd.";
+
+                return [
+                    'geadviseerde_strafmaat_id' => $geescaleerdeStrafmaat->id,
+                    'is_recidivist' => true,
+                    'bericht' => $bericht, // TERUG NAAR 'bericht'
+                    'historie_count' => $count,
+                ];
+            }
+            // Indien de 'PV'-code niet bestaat, valt de logica door naar de normale order_id escalatie hieronder.
+        }
+        
+        // TWEEDE CHECK: Normale escalatie (voor de 2e overtreding, of als PV-code ontbreekt).
+        
         // Zoek de volgende strafmaat in de escalatieketen (hogere 'order_id')
         $geescaleerdeStrafmaat = Strafmaat::where('order_id', '>', $huidigeStrafmaat->order_id)
                                           ->orderBy('order_id', 'asc') // Pak de eerstvolgende
@@ -135,6 +169,7 @@ class RecidiveCheckService
         if ($geescaleerdeStrafmaat) {
             $bericht = $geenDefaultMelding
                 ? "⚠️ RECIDIVE! Visser had {$count} eerdere overtreding(en). {$geenDefaultMelding} Escalatie naar '{$geescaleerdeStrafmaat->omschrijving}' geadviseerd."
+                // FIX: $1 is vervangen door $lookbackMonths
                 : "⚠️ RECIDIVE! Visser had {$count} eerdere overtreding(en) in de laatste {$lookbackMonths} maanden. Escalatie naar '{$geescaleerdeStrafmaat->omschrijving}' geadviseerd.";
 
             return [
