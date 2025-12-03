@@ -16,8 +16,12 @@ class OvertredingTypeController extends Controller
      */
     public function index()
     {
-        // Haal types op, gesorteerd op de nieuwe 'sort_order' kolom, en dan op 'code' als fallback
-        $types = OvertredingType::orderBy('sort_order')->orderBy('code')->get();
+        // Haal types op, inclusief de gerelateerde strafmaten om N+1 queries te voorkomen.
+        // Sorteer op de 'sort_order' kolom, en dan op 'code' als fallback.
+        $types = OvertredingType::with(['defaultStrafmaat', 'recidiveStrafmaat'])
+            ->orderBy('sort_order')
+            ->orderBy('code')
+            ->get();
 
         return Inertia::render('Beheer/OvertredingTypes/Index', [
             'types' => $types
@@ -71,6 +75,7 @@ class OvertredingTypeController extends Controller
             'code' => 'required|string|max:10|unique:overtreding_types,code', 
             'omschrijving' => 'required|string|max:500',
             'default_strafmaat_id' => 'required|exists:strafmaten,id',
+            'recidive_strafmaat_id' => 'nullable|exists:strafmaten,id',
         ]);
         
         // Bepaal de volgende sort_order om het nieuwe item onderaan toe te voegen.
@@ -107,6 +112,7 @@ class OvertredingTypeController extends Controller
             'code' => 'required|string|max:10|unique:overtreding_types,code,' . $overtredingType->id, 
             'omschrijving' => 'required|string|max:500',
             'default_strafmaat_id' => 'required|exists:strafmaten,id',
+            'recidive_strafmaat_id' => 'nullable|exists:strafmaten,id',
         ]);
 
         $overtredingType->update($request->all());

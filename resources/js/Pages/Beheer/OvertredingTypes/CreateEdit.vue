@@ -51,6 +51,7 @@ const form = useForm({
     omschrijving: props.type ? props.type.omschrijving : '',
     // NIEUW: De ID van de standaard gekozen strafmaat.
     default_strafmaat_id: props.type ? props.type.default_strafmaat_id : defaultStrafmaatId,
+    recidive_strafmaat_id: props.type ? props.type.recidive_strafmaat_id : null,
 });
 
 // ====================================================================
@@ -141,6 +142,27 @@ const submit = () => {
                                 </option>
                             </select>
                             <InputError class="mt-2" :message="form.errors.default_strafmaat_id" />
+                        </div>
+
+                        <!-- VELD: Recidive Strafmaat Dropdown -->
+                        <div class="mb-6">
+                            <InputLabel for="recidive_strafmaat_id" value="Recidive Maatregel (2e keer)" />
+                            <select
+                                id="recidive_strafmaat_id"
+                                v-model="form.recidive_strafmaat_id"
+                                class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                            >
+                                <option :value="null">-- Geen speciale recidive maatregel --</option>
+                                <!-- Vult de opties met de doorgestuurde strafmaten prop -->
+                                <option 
+                                    v-for="strafmaat in props.strafmaten" 
+                                    :key="strafmaat.id" 
+                                    :value="strafmaat.id"
+                                >
+                                    {{ strafmaat.omschrijving }}
+                                </option>
+                            </select>
+                            <InputError class="mt-2" :message="form.errors.recidive_strafmaat_id" />
                         </div>
 
 

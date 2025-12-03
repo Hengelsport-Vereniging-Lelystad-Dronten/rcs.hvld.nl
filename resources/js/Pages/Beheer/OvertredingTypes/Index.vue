@@ -48,9 +48,11 @@ const destroy = (typeId, typeCode) => {
                     </div>
 
                     <!-- HEADERS: Alleen zichtbaar op desktop (md:) -->
-                    <div class="hidden md:grid grid-cols-5 gap-4 px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 rounded-t-lg">
+                    <div class="hidden md:grid grid-cols-6 gap-4 px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 rounded-t-lg">
                         <div class="col-span-1">Code</div>
-                        <div class="col-span-3">Omschrijving</div>
+                        <div class="col-span-1">Omschrijving</div>
+                        <div class="col-span-2">Standaard Maatregel</div>
+                        <div class="col-span-1">Recidive Maatregel</div>
                         <div class="col-span-1 text-right">Acties</div>
                     </div>
 
@@ -63,7 +65,7 @@ const destroy = (typeId, typeCode) => {
                         >
                             
                             <!-- Op MD: 5 kolommen. Op SM: 1 kolom met gestapelde velden. -->
-                            <div class="grid grid-cols-1 md:grid-cols-5 gap-y-3 md:gap-4 items-center">
+                            <div class="grid grid-cols-1 md:grid-cols-6 gap-y-3 md:gap-4 items-center">
                                 
                                 <!-- CODE (col-span-1 op md) -->
                                 <div class="md:col-span-1">
@@ -72,9 +74,27 @@ const destroy = (typeId, typeCode) => {
                                 </div>
                                 
                                 <!-- OMSCHRIJVING (col-span-3 op md) -->
-                                <div class="md:col-span-3">
+                                <div class="md:col-span-1">
                                     <p class="text-xs font-medium text-gray-500 uppercase mb-1 md:hidden">Omschrijving</p>
                                     <span class="text-sm text-gray-700">{{ type.omschrijving }}</span>
+                                </div>
+
+                                <!-- Standaard Strafmaat -->
+                                <div class="md:col-span-2">
+                                    <p class="text-xs font-medium text-gray-500 uppercase mb-1 md:hidden">Standaard Maatregel</p>
+                                    <span v-if="type.default_strafmaat" class="text-sm text-gray-700">
+                                        {{ type.default_strafmaat.omschrijving }}
+                                    </span>
+                                    <span v-else class="text-sm text-red-500 italic">Relatie ontbreekt</span>
+                                </div>
+
+                                <!-- RECIDIVE (col-span-1 op md) -->
+                                <div class="md:col-span-1">
+                                    <p class="text-xs font-medium text-gray-500 uppercase mb-1 md:hidden">Recidive</p>
+                                    <span v-if="type.recidive_strafmaat" class="text-sm text-gray-700">
+                                        {{ type.recidive_strafmaat.omschrijving }}
+                                    </span>
+                                    <span v-else class="text-sm text-gray-400">—</span>
                                 </div>
 
                                 <!-- ACTIES (col-span-1 op md) -->

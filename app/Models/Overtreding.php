@@ -14,8 +14,6 @@ class Overtreding extends Model
     protected $fillable = [
         'controle_ronde_id',
         'overtreding_type_id',
-        
-        // NIEUWE VELDEN TOEGEVOEGD:
         'vispasnummer',
         'genomen_maatregel',
         'details',

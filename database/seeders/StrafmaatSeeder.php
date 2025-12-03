@@ -4,12 +4,16 @@ namespace Database\Seeders;
 
 use App\Models\Strafmaat; // Importeer het Strafmaat Model
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Carbon; // Importeer Carbon voor een schone datum
+// Geen Carbon import nodig, we gebruiken de Laravel helper now()
 
 /**
  * Seeder voor het vullen van de 'strafmaten' tabel met initiële, standaard data.
  * Nu inclusief de 'order_id' om een vaste, handmatig gedefinieerde sorteervolgorde
  * te garanderen voor dropdowns en overzichten in de hele applicatie.
+ *
+ * BELANGRIJKE ONDERSCHEIDINGEN:
+ * - VPA-ZT: Zeer tijdelijke inname van de VISpas, typisch een actie in het veld.
+ * - VPA-T/P: Formele disciplinaire inname/intrekking via bestuur of tuchtcommissie.
  */
 class StrafmaatSeeder extends Seeder
 {
@@ -18,17 +22,17 @@ class StrafmaatSeeder extends Seeder
      */
     public function run(): void
     {
-        // De huidige tijd, te gebruiken voor alle timestamps
-        $now = Carbon::now();
-        // Counter voor de oplopende order_id (begint bij 1)
+        // De huidige tijd via de Laravel helper, te gebruiken voor alle timestamps
+        $now = now();
+        // Counter voor de oplopende order_id (begint bij 1). Deze garandeert de volgorde.
         $orderIdCounter = 1;
 
-        // Array met alle standaard strafmaten, gecategoriseerd voor helderheid.
-        // * * BELANGRIJK: De volgorde in deze array bepaalt de uiteindelijke order_id. * *
+        // Array met alle standaard strafmaten, gecategoriseerd voor helderheid en onderhoud.
+        // * * BELANGRIJK: De volgorde in deze array bepaalt de uiteindelijke order_id in de database. * *
         $strafmatenData = [
 
             // -------------------------------------
-            // INTERNE / VERENIGINGSMAATREGELEN (Prioriteit 1 - 5)
+            // INTERNE / VERENIGINGSMAATREGELEN (Prioriteit 1 - 6)
             // -------------------------------------
 
             [
@@ -40,25 +44,29 @@ class StrafmaatSeeder extends Seeder
                 'omschrijving' => 'Herstelgesprek verplicht met bestuur na overtreding (educatief, geen harde straf).',
             ],
             [
-                'code' => 'TS',
-                'omschrijving' => 'Tijdelijke schorsing van visrechten op verenigingswater voor bepaalde periode.',
+                'code' => 'VPA-ZT',
+                'omschrijving' => 'Zeer Tijdelijke Inname en intrekking van VISpas/visdocumenten (1 week, veldactie ter vastlegging).',
             ],
             [
-                'code' => 'VPA',
-                'omschrijving' => 'Inname en intrekking van VISpas/visdocumenten wegens ernstige overtreding.',
+                'code' => 'VPA-T',
+                'omschrijving' => 'Tijdelijke Inname en intrekking van VISpas/visdocumenten (bijv. 3-12 maanden na bestuurlijke afhandeling).',
             ],
             [
-                'code' => 'POV',
-                'omschrijving' => 'Permanent ontzeggen van toegang tot verenigingswateren (ernstige/meervoudige overtredingen).',
+                'code' => 'VPA-P',
+                'omschrijving' => 'Permanente Inname en intrekking van VISpas/visdocumenten (kan clubbreed of via de landelijke Tuchtcommissie worden geregistreerd).',
             ],
-            
+            [
+                'code' => 'RL',
+                'omschrijving' => 'Ontbinding van het lidmaatschap (definitieve beëindiging).',
+            ],
+
             // -------------------------------------
-            // OPERATIONELE ACTIES (GEEN STRAF, MAAR WEL REGISTREREN/MELDEN) (Prioriteit 6 - 8)
+            // OPERATIONELE ACTIES (GEEN STRAF, MAAR WEL REGISTREREN/MELDEN) (Prioriteit 7 - 9)
             // -------------------------------------
-            
+
             [
                 'code' => 'OKE',
-                'omschrijving' => 'Opmaken intern controleverslag met foto’s / bewijsmateriaal (administratieve actie).',
+                'omschrijving' => 'Opmaken intern controleverslag met foto’s / bewijsmateriaal (administratieve actie t.b.v. dossier).',
             ],
             [
                 'code' => 'MA',
@@ -70,16 +78,16 @@ class StrafmaatSeeder extends Seeder
             ],
 
             // -------------------------------------
-            // OFFICIËLE/WETTELIJKE SANCTIES (via BOA/Politie) (Prioriteit 9 - 10)
+            // OFFICIËLE/WETTELIJKE SANCTIES (via BOA/Politie) (Prioriteit 10 - 11)
             // -------------------------------------
 
             [
-                'code' => 'MJ',
-                'omschrijving' => 'Melding aan Justitie / politie / BOA’s bij strafbare feiten of zware visserijovertredingen.',
+                'code' => 'PV',
+                'omschrijving' => 'Proces-verbaal opgemaakt door BOA/Politie (directe wettelijke boete/straf).',
             ],
             [
-                'code' => 'BOA',
-                'omschrijving' => 'Overdracht van zaak aan BOA’s voor mogelijk proces-verbaal, boete of verdere afhandeling.',
+                'code' => 'JUS',
+                'omschrijving' => 'Melding aan Justitie bij strafbare feiten of zware visserijovertredingen (politie-inzet vereist).',
             ],
         ];
 
@@ -87,7 +95,7 @@ class StrafmaatSeeder extends Seeder
         $strafmatenToInsert = [];
         foreach ($strafmatenData as $strafmaat) {
             // HIER WORDT DE ORDER_ID TOEGEVOEGD:
-            $strafmaat['order_id'] = $orderIdCounter++; 
+            $strafmaat['order_id'] = $orderIdCounter++;
             $strafmaat['created_at'] = $now;
             $strafmaat['updated_at'] = $now;
             $strafmatenToInsert[] = $strafmaat;
