@@ -17,6 +17,7 @@ class Overtreding extends Model
         'vispasnummer',
         'genomen_maatregel',
         'details',
+        'vispas_ingenomen',
     ];
 
     /**

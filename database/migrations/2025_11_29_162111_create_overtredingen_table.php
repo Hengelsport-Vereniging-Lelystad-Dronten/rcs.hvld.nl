@@ -22,7 +22,8 @@ return new class extends Migration
             $table->string('vispasnummer')->nullable()->comment('Optioneel vispasnummer van de overtreder');
             $table->string('genomen_maatregel')->comment('Bijv. Waarschuwing, Rapportage, Inbeslagname');
             $table->text('details')->nullable();
-
+            // in je create_overtredingen_table migratie
+            $table->boolean('vispas_ingenomen')->default(false);
             $table->timestamps();
         });
     }

@@ -213,6 +213,7 @@ const overtredingForm = useForm({
     vispasnummer: '',
     // De formulierwaarde wordt direct op de voorgestelde waarde gezet.
     genomen_maatregel: initialMaatregel,
+    vispas_ingenomen: false, // NIEUW: Veld voor de checkbox 'Pas ingenomen'
     details: '',
 });
 
@@ -272,8 +273,8 @@ const submitOvertreding = () => {
             // Herlaad de 'ronde' prop om de overtredingenlijst bij te werken (via Inertia).
             router.reload({ only: ['ronde'] });
             
-            // Reset de invoervelden van het formulier (behalve de ronde-ID en het type).
-            overtredingForm.reset('vispasnummer', 'details');
+            // Reset de invoervelden van het formulier. De ronde-ID en het type blijven behouden.
+            overtredingForm.reset('vispasnummer', 'details', 'vispas_ingenomen'); // Dit reset de checkbox
             
             // Reset de status van de recidive check naar de initiële staat.
             isRecidivist.value = false;
@@ -445,14 +446,25 @@ const annuleerRonde = () => {
                                 <p class="font-bold">⚠️ RECIDIVE GEVAAR - ESCALATIE GEADVISEERD!</p>
                                 <p class="text-sm mt-1">
                                     <!-- De lookback periode is aangepast naar 24 maanden, volgens de API output -->
-                                    Visser had {{ recidiveCount }} overtreding(en) in de laatste 24 maanden.
-                                    Escalatie van WA naar HG geadviseerd.
+                                    Visser had {{ recidiveCount }} overtreding(en) in de laatste 12 maanden.
                                 </p>
                                 <p class="font-semibold text-sm mt-2">Geadviseerde Escalatie:</p>
                                 <!-- We tonen de voorgestelde maatregel als het advies -->
                                 <div class="text-sm pl-2 mt-1 whitespace-pre-line text-red-800 font-medium">- {{ suggestedMaatregel }}</div>
                             </div>
 
+                            <!-- Veld: Checkbox voor 'Pas ingenomen' -->
+                            <!-- Dit veld verschijnt als de voorgestelde maatregel de term 'Inname' of 'Ontbinding' bevat. -->
+                            <div v-if="suggestedMaatregel.includes('Inname') || suggestedMaatregel.includes('Ontbinding') || suggestedMaatregel.includes('Politie') || suggestedMaatregel.includes('Justitie')" class="mb-4 bg-yellow-50 border border-yellow-300 p-3 rounded-md">                                <label for="vispas_ingenomen" class="flex items-center">
+                                    <input
+                                        id="vispas_ingenomen"
+                                        type="checkbox"
+                                        v-model="overtredingForm.vispas_ingenomen"
+                                        class="rounded border-gray-300 text-red-600 shadow-sm focus:ring-red-500"
+                                    />
+                                    <span class="ml-2 text-sm font-medium text-gray-800">VISpas daadwerkelijk ingenomen</span>
+                                </label>
+                            </div>
 
                             <!-- Veld: Genomen Maatregel (Aangepast Label) -->
                             <div class="mb-4">
