@@ -3,7 +3,7 @@
 // IMPORTS
 // Hier importeren we alle benodigde componenten en functionaliteit.
 // ====================================================================
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
@@ -24,6 +24,13 @@ const showingNavigationDropdown = ref(false);
 // Deze data is essentieel voor het tonen van de naam/rol en autorisatie.
 const user = usePage().props.auth.user;
 
+// Haal de applicatie-omgeving op (dev, local, production)
+const appEnv = computed(() => usePage().props.app_env);
+
+// Bepaal of we in een ontwikkelomgeving zitten.
+// De banner wordt getoond als de omgeving 'dev' of 'local' is.
+const isDevelopment = computed(() => appEnv.value === 'dev' || appEnv.value === 'local');
+
 // ====================================================================
 // AUTORISATIE LOGICA
 // ====================================================================
@@ -41,6 +48,11 @@ const canViewManagementDashboard = user.role === 'Beheerder';
 <template>
     <!-- De hoofdcontainer voor de gehele lay-out -->
     <div>
+        <!-- ONTWIKKELOMGEVING BANNER -->
+        <div v-if="isDevelopment" class="bg-yellow-400 text-black text-center p-2 font-bold text-sm z-50 relative">
+            Let op: Je werkt in de '{{ appEnv }}' omgeving.
+        </div>
+
         <div class="min-h-screen bg-gray-100">
             <!-- Navigatiebalk (Header) -->
             <nav class="border-b border-gray-100 bg-white">
