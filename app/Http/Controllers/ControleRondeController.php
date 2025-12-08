@@ -74,7 +74,7 @@ class ControleRondeController extends Controller
         $controle->load(['user', 'water', 'overtredingen.overtredingType']); 
 
         // 1. Haal de lijst met Overtreding Types op, inclusief de Foreign Key voor de standaard strafmaat.
-        $overtredingTypes = OvertredingType::select('id', 'code', 'omschrijving', 'default_strafmaat_id')
+        $overtredingTypes = OvertredingType::with('defaultStrafmaat', 'recidiveStrafmaat')
                                             ->orderBy('code')
                                             ->get();
         

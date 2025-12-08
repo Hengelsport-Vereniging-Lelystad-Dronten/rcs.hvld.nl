@@ -115,4 +115,6 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    'vispas_ingenomen_recipient' => env('MAIL_VISPAS_INGENOMEN_RECIPIENT'),
+
 ];
