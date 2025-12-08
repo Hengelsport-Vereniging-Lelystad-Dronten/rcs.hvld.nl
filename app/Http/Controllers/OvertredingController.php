@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\ControleRonde;
 use App\Models\Overtreding;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\VispasIngenomenMail;
 
 use App\Models\OvertredingType;
 
@@ -21,6 +23,7 @@ class OvertredingController extends Controller
             'overtreding_type_id' => 'required|exists:overtreding_types,id',
             'vispasnummer' => 'nullable|string|max:50',
             'details' => 'nullable|string',
+            'vispas_ingenomen' => 'nullable|boolean',
         ]);
 
         // 2. Controleer of de ronde actief is
@@ -60,7 +63,15 @@ class OvertredingController extends Controller
         $overtredingData = $validated;
         $overtredingData['genomen_maatregel'] = $genomenMaatregel;
 
-        Overtreding::create($overtredingData);
+        $overtreding = Overtreding::create($overtredingData);
+
+        if ($overtreding->vispas_ingenomen) {
+            $recipient = config('mail.vispas_ingenomen_recipient');
+            if ($recipient) {
+                $overtreding->load('controleRonde.user', 'overtredingType');
+                Mail::to($recipient)->send(new VispasIngenomenMail($overtreding));
+            }
+        }
 
         // 5. Terugsturen naar de ronde-pagina met een succesbericht
         return redirect()->route('controles.show', $ronde->id)

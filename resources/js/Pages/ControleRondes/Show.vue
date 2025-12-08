@@ -1,150 +1,78 @@
 <script setup>
 // ====================================================================
 // IMPORTS
-// Hier importeren we alle benodigde componenten en functionaliteit.
 // ====================================================================
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-// Head: Voor het instellen van de paginatitel.
-// useForm: Voor het beheren van formulierstatus (data, validatie, processing).
-// router: Voor navigatie en het herladen van props (bijvoorbeeld na een succesvolle actie).
 import { Head, useForm, router } from '@inertiajs/vue3';
-// ref EN watch: Voor het creëren van reactieve variabelen en het volgen van wijzigingen in Vue.
 import { ref, watch } from 'vue';
-// Debounce utiliteit voor de API-call op het vispasnummer. Dit voorkomt overbodige calls tijdens het typen.
 import { debounce } from 'lodash';
-// Standaard UI-componenten
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
 
-// De AdviesOverzicht component is verwijderd, aangezien de gevraagde functionaliteit
-// de formulier-specifieke recidive waarschuwing is (zie foto).
-
 // ====================================================================
 // PROPS DEFINITIE
-// Data die van de Laravel Controller via Inertia wordt doorgegeven.
 // ====================================================================
 const props = defineProps({
-    // De hoofddata van de ronde, inclusief geneste relaties (user, water, overtredingen).
     ronde: Object,
-    // Lijst van alle mogelijke overtredingstypes (bevat de default_strafmaat_id en recidive_strafmaat_id).
     overtredingTypes: Array,
-    // De volledige lijst van beschikbare Strafmaten (ID en Omschrijving).
     strafmaten: Array,
 });
 
 // ====================================================================
-// STATE MANAGEMENT (ref) VOOR RECIDIVE CHECK & UI
-// Dit is de recidive check die bij de formulierinvoer hoort.
+// STATE MANAGEMENT (ref)
 // ====================================================================
-
-// Geeft aan of de API-check op recidive nog bezig is.
 const isRecidiveCheckLoading = ref(false);
-// De tekstuele status van de recidive check.
 const recidiveStatus = ref('');
-// De boolean waarde die aangeeft of de visser recidivist is voor dit type overtreding.
 const isRecidivist = ref(false);
-// Slaat het aantal eerdere overtredingen op.
 const recidiveCount = ref(0);
-// NIEUW: ID van de maatregel die AUTOMATISCH is geadviseerd door de API (geëscaleerde maatregel).
-const geadviseerdeStrafmaatId = ref(null);
-// Houdt bij of de ronde nog 'Actief' is, stuurt de weergave van formulieren aan.
 const isActief = ref(props.ronde.status === 'Actief');
-// Houdt de laadstatus bij tijdens het annuleren/verwijderen.
 const isDeleting = ref(false);
-
-// De omschrijving van de maatregel die AUTOMATISCH is voorgesteld.
 const suggestedMaatregel = ref('');
 
 // ====================================================================
 // HULP FUNCTIES
 // ====================================================================
-
-/**
- * Zoekt de omschrijving van de voorgestelde strafmaat op basis van het overtredingstype
- * en de recidive status, of de ID die direct door de API is doorgegeven.
- * @param {number | string} typeId - De ID van het geselecteerde overtredingstype.
- * @param {boolean} isRecidivistFlag - Vlag die aangeeft of de visser recidivist is.
- * @param {number | null} advisedId - OPTIONEEL: De ID van de maatregel die de API heeft geadviseerd (prioriteit).
- * @returns {string} De omschrijving van de voorgestelde strafmaat (default, recidive, of API advies).
- */
-const lookupProposedMaatregel = (typeId, isRecidivistFlag, advisedId = null) => {
-    // 1. Prioriteit: Gebruik de ID die direct door de API is geadviseerd, als deze aanwezig is bij recidive.
-    if (isRecidivistFlag && advisedId) {
-        const advisedStrafmaat = props.strafmaten.find(maatregel => maatregel.id === advisedId);
-        // Als de API-geadviseerde ID een geldige maatregel oplevert, gebruik die direct.
-        if (advisedStrafmaat) {
-            return advisedStrafmaat.omschrijving;
-        }
-    }
-    
-    // 2. Fallback: Gebruik de lokale logica (default of recidive_strafmaat_id uit de props).
+const lookupProposedMaatregel = (typeId, isRecidivistFlag) => {
     const selectedType = props.overtredingTypes.find(type => type.id === typeId);
 
     if (!selectedType || selectedType.code === '00') {
-        // ID 00 ('Geen overtreding') of onbekend type.
         return 'Niet van toepassing';
     }
 
-    let strafmaatId;
-
-    // Bepaal welke ID te gebruiken: recidive (uit props) of default.
-    // Dit wordt alleen bereikt als het API advies (stap 1) niet werkte.
-    if (isRecidivistFlag && selectedType.recidive_strafmaat_id) {
-        strafmaatId = selectedType.recidive_strafmaat_id;
-    } else {
-        strafmaatId = selectedType.default_strafmaat_id;
+    if (isRecidivistFlag && selectedType.recidive_strafmaat) {
+        return selectedType.recidive_strafmaat.omschrijving;
+    } 
+    
+    if (selectedType.default_strafmaat) {
+        return selectedType.default_strafmaat.omschrijving;
     }
 
-    // Zoek de omschrijving in de volledige lijst van strafmaten.
-    const strafmaat = props.strafmaten.find(maatregel => maatregel.id === strafmaatId);
-
-    // 4. Geef de omschrijving terug, of een fallback.
-    return strafmaat ? strafmaat.omschrijving : 'Handmatig Invoeren';
+    return 'Handmatig Invoeren';
 };
 
-/**
- * Update de voorgestelde maatregel (suggestedMaatregel) en zet deze ook als
- * de actuele waarde in het formulier (overtredingForm.genomen_maatregel).
- * @param {boolean | null} recidiveFlag - Optioneel, forceer een recidive vlag. Gebruikt de state als null.
- * @param {number | null} advisedId - De geadviseerde strafmaat ID van de API.
- */
-const updateProposedMeasure = (recidiveFlag = isRecidivist.value, advisedId = geadviseerdeStrafmaatId.value) => {
+const updateProposedMeasure = (recidiveFlag = isRecidivist.value) => {
     const newMeasure = lookupProposedMaatregel(
         overtredingForm.overtreding_type_id,
-        recidiveFlag,
-        advisedId // Geef de geëscaleerde ID door
+        recidiveFlag
     );
-    // 1. Update de voorgestelde tekst voor het label en de waarschuwingsbox.
     suggestedMaatregel.value = newMeasure;
-
-    // 2. Update de formulierwaarde (deze wordt direct geselecteerd in de dropdown).
     overtredingForm.genomen_maatregel = newMeasure;
 };
 
-/**
- * Voert de API-check uit om te bepalen of de visser recidivist is.
- * Dit is de check die hoort bij het vastleggen van een overtreding.
- * @param {string} vispasnummer - Het ingevoerde vispasnummer.
- * @param {number} overtredingTypeId - De ID van het geselecteerde overtredingstype.
- */
 const checkRecidive = async (vispasnummer, overtredingTypeId) => {
-    // Voorkom onnodige checks als het nummer te kort is.
     if (!vispasnummer || vispasnummer.length < 6) {
         isRecidivist.value = false;
         recidiveStatus.value = '';
         recidiveCount.value = 0;
-        geadviseerdeStrafmaatId.value = null; // Reset ID
-        updateProposedMeasure(false, null); // Forceer default maatregel
+        updateProposedMeasure(false);
         return;
     }
 
     isRecidiveCheckLoading.value = true;
     recidiveStatus.value = 'Controleren...';
 
-    // Haal de CSRF token op voor de handmatige POST-request
-    // (Aangenomen dat 'route' helper en CSRF-token op de juiste manier beschikbaar zijn in de omgeving)
     const csrfToken = document.querySelector('meta[name="csrf-csrfToken"]')
         ? document.querySelector('meta[name="csrf-csrfToken"]').getAttribute('content')
         : '';
@@ -154,7 +82,6 @@ const checkRecidive = async (vispasnummer, overtredingTypeId) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                // De CSRF-token is essentieel voor een succesvolle POST in Laravel!
                 'X-CSRF-TOKEN': csrfToken,
             },
             body: JSON.stringify({
@@ -164,60 +91,63 @@ const checkRecidive = async (vispasnummer, overtredingTypeId) => {
         });
 
         if (!response.ok) {
-            // Als de API niet 200/OK teruggeeft, gooien we een foutmelding.
             throw new Error(`API-fout bij recidive check: ${response.status}`);
         }
 
         const data = await response.json();
 
-        // Werk de lokale state bij op basis van de API-response
         isRecidivist.value = data.is_recidivist;
-        // FIX: Gebruik 'historie_count' i.p.v. 'aantal' om de telling correct uit te lezen.
-        recidiveCount.value = data.historie_count || 0; 
-        // FIX: Sla de API geadviseerde ID op, deze heeft prioriteit voor de maatregel.
-        geadviseerdeStrafmaatId.value = data.geadviseerde_strafmaat_id || null;
+        recidiveCount.value = data.historie_count || 0;
         
         recidiveStatus.value = data.is_recidivist
             ? `RECIDIVIST! (${recidiveCount.value}e keer)`
             : 'Geen bekende recidive.';
+
+        // --- FIX START ---
+        // Als de API een geadviseerde strafmaat ID teruggeeft, gebruik die dan direct.
+        if (data.geadviseerde_strafmaat_id) {
+            const geadviseerdeStrafmaat = props.strafmaten.find(s => s.id === data.geadviseerde_strafmaat_id);
+            if (geadviseerdeStrafmaat) {
+                // Update direct de `genomen_maatregel` van het formulier
+                overtredingForm.genomen_maatregel = geadviseerdeStrafmaat.omschrijving;
+                // Update ook de `suggestedMaatregel` voor de UI-feedback
+                suggestedMaatregel.value = geadviseerdeStrafmaat.omschrijving;
+            }
+        }
+        // --- FIX END ---
 
     } catch (error) {
         console.error("Fout tijdens recidive check:", error);
         isRecidivist.value = false;
         recidiveStatus.value = 'Fout bij controleren.';
         recidiveCount.value = 0;
-        geadviseerdeStrafmaatId.value = null; // Reset ID bij fout
     } finally {
         isRecidiveCheckLoading.value = false;
-        // Zorg ervoor dat de voorgestelde maatregel direct wordt bijgewerkt
-        updateProposedMeasure();
     }
 };
 
 // ====================================================================
 // FORMULIER LOGICA (useForm)
 // ====================================================================
-
-// Bepaal de initiele overtredingstype ID (altijd de eerste in de lijst, of leeg)
 const initialTypeId = props.overtredingTypes.length > 0 ? props.overtredingTypes[0].id : '';
-// Bepaal de initiele maatregel omschrijving op basis van het start-type
-const initialMaatregel = lookupProposedMaatregel(initialTypeId, false, null);
 
-// Initialiseer de suggestedMaatregel direct bij opstarten
-suggestedMaatregel.value = initialMaatregel;
+// Find the initial strafmaat based on lookupProposedMaatregel and then get its ID
+const initialMaatregelOmschrijving = lookupProposedMaatregel(initialTypeId, false);
+const initialStrafmaat = props.strafmaten.find(s => s.omschrijving === initialMaatregelOmschrijving);
+const initialStrafmaatId = initialStrafmaat ? initialStrafmaat.id : '';
 
-// 1. Formulier voor het vastleggen van een NIEUWE Overtreding
+suggestedMaatregel.value = initialMaatregelOmschrijving;
+
 const overtredingForm = useForm({
     controle_ronde_id: props.ronde.id,
     overtreding_type_id: initialTypeId,
     vispasnummer: '',
-    // De formulierwaarde wordt direct op de voorgestelde waarde gezet.
-    genomen_maatregel: initialMaatregel,
-    vispas_ingenomen: false, // NIEUW: Veld voor de checkbox 'Pas ingenomen'
+    strafmaat_id: initialStrafmaatId, // Gebruik ID voor opslag
+    genomen_maatregel: initialMaatregelOmschrijving, // Gebruik omschrijving voor display en potentieel fallback
+    vispas_ingenomen: false,
     details: '',
 });
 
-// 2. Formulier voor het AFSLUITEN van de ronde
 const afrondForm = useForm({
     ronde_id: props.ronde.id,
     opmerkingen: props.ronde.opmerkingen || '',
@@ -226,92 +156,83 @@ const afrondForm = useForm({
 // ====================================================================
 // DYNAMISCHE LOGICA (WATCHERS)
 // ====================================================================
-
-// Watcher 1: Kijkt naar veranderingen in het geselecteerde overtredingstype ID.
 watch(() => overtredingForm.overtreding_type_id, (newTypeId) => {
-    // 1. Werk de voorgestelde maatregel bij op basis van de HUIDIGE recidive status.
-    updateProposedMeasure();
+    // Determine the proposed measure based on the new type, but don't set the ID directly here yet.
+    const newProposedOmschrijving = lookupProposedMaatregel(newTypeId, isRecidivist.value);
+    suggestedMaatregel.value = newProposedOmschrijving;
+    
+    // Find the corresponding strafmaat ID if it exists and update the form
+    const newProposedStrafmaat = props.strafmaten.find(s => s.omschrijving === newProposedOmschrijving);
+    overtredingForm.strafmaat_id = newProposedStrafmaat ? newProposedStrafmaat.id : '';
+    overtredingForm.genomen_maatregel = newProposedOmschrijving; // Keep this for now for the form display
 
-    // 2. Als er al een vispasnummer is, voer de recidive check opnieuw uit voor dit nieuwe type (met debounce).
     if (overtredingForm.vispasnummer) {
         debouncedCheckRecidive(overtredingForm.vispasnummer, newTypeId);
     }
 });
 
-// Watcher 2: Kijkt naar veranderingen in het Vispasnummer (met debounce voor prestaties).
-// We gebruiken debounce om de API-call pas uit te voeren nadat de gebruiker 500ms gestopt is met typen.
 const debouncedCheckRecidive = debounce((newVispasnummer, typeId) => {
     checkRecidive(newVispasnummer, typeId);
 }, 500);
 
 watch(() => overtredingForm.vispasnummer, (newVispasnummer) => {
-    // Start de gedebouncete check
     debouncedCheckRecidive(newVispasnummer, overtredingForm.overtreding_type_id);
 
-    // Reset de recidive status en maatregel direct als het veld leeg is of te kort.
     if (!newVispasnummer || newVispasnummer.length < 6) {
         isRecidivist.value = false;
         recidiveStatus.value = '';
         recidiveCount.value = 0; 
-        geadviseerdeStrafmaatId.value = null; // NIEUW: Reset ID
-        updateProposedMeasure(false, null); // Forceer de default maatregel
+        
+        // Reset to initial proposed measure when vispasnummer is cleared
+        const newProposedOmschrijving = lookupProposedMaatregel(overtredingForm.overtreding_type_id, false);
+        const newProposedStrafmaat = props.strafmaten.find(s => s.omschrijving === newProposedOmschrijving);
+        overtredingForm.strafmaat_id = newProposedStrafmaat ? newProposedStrafmaat.id : '';
+        suggestedMaatregel.value = newProposedOmschrijving;
+        overtredingForm.genomen_maatregel = newProposedOmschrijving;
     }
 });
 
 // ====================================================================
 // ACTIES / FUNCTIES
 // ====================================================================
-
-/**
- * Verstuurt het formulier om een nieuwe overtreding op te slaan.
- */
 const submitOvertreding = () => {
-    // Maakt een POST-verzoek naar de 'overtredingen.store' route.
+    // Ensure the `genomen_maatregel` (omschrijving) matches the selected ID for consistency,
+    // although the backend should primarily use `strafmaat_id`.
+    const selectedStrafmaat = props.strafmaten.find(s => s.id === overtredingForm.strafmaat_id);
+    overtredingForm.genomen_maatregel = selectedStrafmaat ? selectedStrafmaat.omschrijving : 'Niet Gevonden';
+
     overtredingForm.post(route('overtredingen.store'), {
-        preserveScroll: true, // Zorgt dat de scrollpositie behouden blijft.
+        preserveScroll: true,
         onSuccess: () => {
-            // Herlaad de 'ronde' prop om de overtredingenlijst bij te werken (via Inertia).
             router.reload({ only: ['ronde'] });
-            
-            // Reset de invoervelden van het formulier. De ronde-ID en het type blijven behouden.
-            overtredingForm.reset('vispasnummer', 'details', 'vispas_ingenomen'); // Dit reset de checkbox
-            
-            // Reset de status van de recidive check naar de initiële staat.
+            overtredingForm.reset('vispasnummer', 'details', 'vispas_ingenomen');
             isRecidivist.value = false;
             recidiveStatus.value = '';
             recidiveCount.value = 0;
-            geadviseerdeStrafmaatId.value = null; // Reset ID
             
-            // Werk de maatregel bij naar de default van het geselecteerde type (voor de volgende overtreding).
-            updateProposedMeasure(false);
+            // Reset to initial proposed measure after successful submission
+            const newProposedOmschrijving = lookupProposedMaatregel(overtredingForm.overtreding_type_id, false);
+            const newProposedStrafmaat = props.strafmaten.find(s => s.omschrijving === newProposedOmschrijving);
+            overtredingForm.strafmaat_id = newProposedStrafmaat ? newProposedStrafmaat.id : '';
+            suggestedMaatregel.value = newProposedOmschrijving;
+            overtredingForm.genomen_maatregel = newProposedOmschrijving;
         },
     });
 };
 
-/**
- * Verstuurt het formulier om de ronde definitief af te sluiten (status wijzigen naar Afgerond).
- */
 const sluitRondeAf = () => {
-    // Maakt een PUT-verzoek naar de custom 'controles.afronden' route.
     afrondForm.put(route('controles.afronden', afrondForm.ronde_id), {
         onSuccess: () => {
-            // Werk de lokale state bij, waardoor de formulieren verdwijnen en de afrondingstekst verschijnt.
             isActief.value = false;
         },
     });
 };
 
-/**
- * Annuleert en verwijdert de controle ronde (inclusief alle overtredingen).
- */
 const annuleerRonde = () => {
-    // Vraag om bevestiging.
     if (confirm('Weet je zeker dat je deze ronde wilt annuleren? Alle vastgelegde overtredingen gaan verloren!')) {
         isDeleting.value = true;
-        // Maakt een DELETE-verzoek naar de 'controles.destroy' route.
         router.delete(route('controles.destroy', props.ronde.id), {
             onFinish: () => {
-                // isDeleting wordt ook gereset na een succesvolle/mislukte omleiding.
                 isDeleting.value = false;
             },
         });
@@ -373,6 +294,9 @@ const annuleerRonde = () => {
                             </p>
                             <p v-if="overtreding.vispasnummer" class="text-sm text-gray-700">
                                 <span class="font-semibold">Vispasnr:</span> {{ overtreding.vispasnummer }}
+                            </p>
+                            <p v-if="overtreding.vispas_ingenomen" class="text-sm text-red-700 font-bold">
+                                <span class="font-semibold">Status:</span> VISpas Ingenomen
                             </p>
                             <p v-if="overtreding.details" class="text-xs italic text-gray-600 mt-1">
                                 <span class="font-semibold">Details:</span> {{ overtreding.details }}
