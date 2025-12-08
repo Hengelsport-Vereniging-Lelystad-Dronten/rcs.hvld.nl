@@ -10,7 +10,7 @@
     <ul>
         <li>Datum: {{ $overtreding->created_at->format('d-m-Y H:i') }}</li>
         <li>Controleur: {{ $overtreding->controleRonde->user->name }}</li>
-        <li>Overtreding: {{ $overtreding->overtredingType->name }}</li>
+        <li>Overtreding: {{ $overtreding->overtredingType->omschrijving }}</li>
         <li>Vispasnummer: {{ $overtreding->vispasnummer }}</li>
     </ul>
     <p>
