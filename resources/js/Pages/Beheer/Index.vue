@@ -58,6 +58,14 @@ import { Head, Link } from '@inertiajs/vue3';
                                 </Link>
                                 <p class="text-sm text-gray-500">Definieer en beheer de types overtredingen die tijdens controles vastgelegd kunnen worden.</p>
                             </div>
+
+                            <!-- 5. Periodieke Rapporten -->
+                            <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
+                                <Link :href="route('beheer.reports.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
+                                    📊 Periodieke Rapporten
+                                </Link>
+                                <p class="text-sm text-gray-500">Genereer en bekijk wekelijks, maandelijks, en kwartaalrapporten met statistieken en analyses.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
