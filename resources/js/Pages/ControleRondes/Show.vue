@@ -473,7 +473,8 @@ const annuleerRonde = () => {
                         </form>
 
                         <!-- Sectie: Ronde Annuleren -->
-                        <div class="mt-8 pt-4 border-t border-gray-200">
+                        <!-- Alleen zichtbaar indien nog geen overtredingen zijn geregistreerd -->
+                        <div v-if="ronde.overtredingen.length === 0" class="mt-8 pt-4 border-t border-gray-200">
                             <h4 class="font-medium text-gray-700 mb-2">Ronde Permanent Verwijderen</h4>
                             <p class="text-xs text-red-500 mb-3">
                                 <span class="font-bold">Waarschuwing:</span> Hiermee wordt de ronde permanent verwijderd, inclusief alle geregistreerde overtredingen. Dit kan niet ongedaan gemaakt worden.
