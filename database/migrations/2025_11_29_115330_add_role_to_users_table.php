@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * database/migrations/2025_11_29_115330_add_role_to_users_table.php
+ *
+ * Voegt een `role` kolom toe aan de `users` tabel. Rollen worden gebruikt
+ * voor eenvoudige autorisatie (bijv. 'Beheerder'). Deze migratie zorgt ervoor
+ * dat bestaande accounts een default-rol kunnen krijgen.
+ */
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

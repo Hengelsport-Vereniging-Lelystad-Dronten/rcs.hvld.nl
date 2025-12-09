@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * database/migrations/0001_01_01_000001_create_cache_table.php
+ *
+ * Migratie voor de standaard Laravel cache tabel. Gebruikt wanneer de
+ * cache-driver 'database' ingesteld is; slaat entries op met expiry.
+ */
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

@@ -9,6 +9,13 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB; // Nodig voor de updateOrder transactie
 
+/**
+ * Controller: OvertredingTypeController
+ *
+ * Beheert overtredingstypes in het beheerdersgedeelte. Deze controller biedt
+ * functionaliteit voor het aanmaken, bewerken, verwijderen en herschikken
+ * van overtredingstypen en exposeert deze aan de Inertia/Vue frontend.
+ */
 class OvertredingTypeController extends Controller
 {
     /**

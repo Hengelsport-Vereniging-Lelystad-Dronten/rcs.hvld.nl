@@ -1,4 +1,10 @@
 <!DOCTYPE html>
+<!--
+    resources/views/errors/layout.blade.php
+
+    Eenvoudige error layout gebruikt door de standaard error-views (404, 500, etc.).
+    Houd deze minimalistisch zodat fouten ook zichtbaar blijven wanneer assets ontbreken.
+-->
 <html lang="en">
     <head>
         <meta charset="utf-8">

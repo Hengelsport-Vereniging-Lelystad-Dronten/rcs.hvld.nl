@@ -6,6 +6,12 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+/**
+ * tests/Feature/Auth/PasswordConfirmationTest.php
+ *
+ * Testen die de wachtwoordbevestiging (confirm-password) pagina en actie
+ * controleren. Wordt gebruikt bij gevoelige acties waarvoor extra verificatie nodig is.
+ */
 class PasswordConfirmationTest extends TestCase
 {
     use RefreshDatabase;

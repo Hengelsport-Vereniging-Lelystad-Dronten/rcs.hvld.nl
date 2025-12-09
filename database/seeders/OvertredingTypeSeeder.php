@@ -7,17 +7,11 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Seeder voor het vullen van de 'overtreding_types' tabel met initiële data.
+ * database/seeders/OvertredingTypeSeeder.php
  *
- * BELANGRIJK: De 'default_strafmaat_id' en nieuwe 'recidive_strafmaat_id' kolommen
- * zijn bijgewerkt op basis van de aangeleverde structuur.
- *
- * Controleer de mapping met de StrafmaatSeeder:
- * ID 1 = WA (Waarschuwing)
- * ID 2 = HG (Herstelgesprek)
- * ID 3 = VPA-ZT (Zeer Tijdelijke Inname - Veldactie)
- * ID 4 = VPA-T (Tijdelijke Inname - Formele Tuchtmaatregel)
- * ID 10 = PV (Proces-verbaal, indien dit ID 10 is in StrafmaatSeeder)
+ * Seeder die de meest gebruikte overtredingscodes en hun standaard- en recidive
+ * strafmaten in de database zet. Controleer na wijzigingen altijd of de
+ * ID-mapping met `StrafmaatSeeder` nog klopt.
  */
 class OvertredingTypeSeeder extends Seeder
 {

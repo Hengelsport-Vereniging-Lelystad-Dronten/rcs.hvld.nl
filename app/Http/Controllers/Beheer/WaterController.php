@@ -8,6 +8,12 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Validation\Rule; // Nodig voor unique-validatie in update
 
+/**
+ * Controller: WaterController
+ *
+ * Beheert het CRUD-proces voor 'Water' resources in het beheerderspaneel.
+ * Verzorgt het aanmaken, bewerken, verwijderen en tonen van wateren voor de frontend.
+ */
 class WaterController extends Controller
 {
     /**

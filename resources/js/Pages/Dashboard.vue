@@ -1,4 +1,6 @@
 <script setup>
+// Dashboard.vue
+// Pagina met overzichtskaarten (KPI's) en recente rondes; gebruikt door ingelogde gebruikers.
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
 

@@ -7,7 +7,13 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+ * database/factories/UserFactory.php
+ *
+ * Factory om snel test-/seed data voor `User` modellen te genereren.
+ * Deze factory wordt gebruikt door seeders en tests om voorbeeldaccounts
+ * te maken met veilige, deterministische velden waar nodig.
+ *
+ * Let op: het standaardwachtwoord is 'password' (gehashed) voor local testing.
  */
 class UserFactory extends Factory
 {

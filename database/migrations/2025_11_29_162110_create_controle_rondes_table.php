@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * database/migrations/2025_11_29_162110_create_controle_rondes_table.php
+ *
+ * Creëert de `controle_rondes` tabel die een controle-activiteit vastlegt:
+ * welke gebruiker, welk water, begin/eind tijden en algemene opmerkingen.
+ */
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

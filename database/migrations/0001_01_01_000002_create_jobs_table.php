@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * database/migrations/0001_01_01_000002_create_jobs_table.php
+ *
+ * Standaard Laravel migratie voor queue jobs tabel. Bevat kolommen
+ * om wachtrij-taken te serialiseren en te retryen. Wordt gebruikt
+ * als de applicatie asynchrone jobs via de database driver draait.
+ */
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

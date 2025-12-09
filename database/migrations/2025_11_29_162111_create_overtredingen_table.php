@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * database/migrations/2025_11_29_162111_create_overtredingen_table.php
+ *
+ * Creëert de `overtredingen` tabel die individuele overtredingsrecords
+ * voor een `controle_ronde` bevat. Velden bevatten referenties naar
+ * `overtreding_types`, optioneel `vispasnummer`, genomen maatregel en timestamps.
+ */
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

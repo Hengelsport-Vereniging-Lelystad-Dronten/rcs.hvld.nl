@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * database/migrations/2025_12_01_112512_add_default_strafmaat_to_overtreding_types_table.php
+ *
+ * Voegt een `default_strafmaat_id` kolom toe aan `overtreding_types` zodat
+ * elk type direct een aanbevolen strafmaat kan verwijzen. Dit vereenvoudigt
+ * de frontend selectie en backend standaardisatie.
+ */
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

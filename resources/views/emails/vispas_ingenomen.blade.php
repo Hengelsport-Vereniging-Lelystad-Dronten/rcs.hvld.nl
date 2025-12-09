@@ -2,6 +2,13 @@
 <html>
 <head>
     <title>Vispas Ingenomen</title>
+    <!--
+        resources/views/emails/vispas_ingenomen.blade.php
+
+        E-mail template die wordt gebruikt wanneer een vispas door een controleur
+        is ingenomen. Deze template ontvangt een `$overtreding` model en toont
+        datum, controleur, type overtreding en vispasnummer.
+    -->
 </head>
 <body>
     <h1>Vispas Ingenomen</h1>

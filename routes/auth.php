@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * routes/auth.php
+ *
+ * Routes die de authenticatieflow (login, logout, wachtwoordreset, e-mail verificatie)
+ * verzorgen. De routes zijn gegroepeerd op basis van 'guest' of 'auth' middleware.
+ */
+
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;

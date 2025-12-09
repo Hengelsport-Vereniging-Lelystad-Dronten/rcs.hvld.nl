@@ -1,4 +1,11 @@
 <!DOCTYPE html>
+<!--
+    resources/views/app.blade.php
+
+    Centrale Blade layout voor Inertia/Vue pages. Deze template laadt
+    Vite-assets en initialiseert Inertia. Wijzigen van deze file kan
+    invloed hebben op iedere frontend pagina; wees voorzichtig met CDN's.
+-->
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
