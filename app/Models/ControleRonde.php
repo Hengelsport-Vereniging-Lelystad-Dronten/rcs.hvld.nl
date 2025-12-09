@@ -5,6 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Model: ControleRonde
+ *
+ * Dit model representeert een controle-ronde uitgevoerd door een controleur op een specifiek water.
+ * Het bevat metadata zoals start- en eindtijd, opmerkingen en de status van de ronde.
+ * Relaties met `User`, `Water` en `Overtreding` zijn hieronder gedefinieerd.
+ */
 class ControleRonde extends Model
 {
     use HasFactory;

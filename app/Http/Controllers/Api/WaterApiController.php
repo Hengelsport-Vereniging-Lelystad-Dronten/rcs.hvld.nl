@@ -10,6 +10,12 @@ use Illuminate\Support\Facades\DB;
 class WaterApiController extends Controller
 {
     /**
+     * API Controller: WaterApiController
+     *
+     * Biedt eenvoudige API endpoints gerelateerd aan wateren.
+     * Bijvoorbeeld het opzoeken van het dichtstbijzijnde water op basis van GPS-coördinaten.
+     */
+    /**
      * Zoek het dichtstbijzijnde water op basis van GPS-coördinaten (Haversine-formule).
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse

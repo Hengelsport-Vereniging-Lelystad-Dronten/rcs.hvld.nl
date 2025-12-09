@@ -10,6 +10,12 @@ use App\Models\Water; // Voorbereiding voor wateren
 class BeheerController extends Controller
 {
     /**
+     * Controller: BeheerController
+     *
+     * Algemene beheerpagina's en hulpfuncties voor gebruikers met beheerrechten.
+     * Deze controller bevat vaak overzicht- en dashboardmethods voor beheerders.
+     */
+    /**
      * Toon de hoofd Beheerder Dashboard pagina.
      */
     public function index()

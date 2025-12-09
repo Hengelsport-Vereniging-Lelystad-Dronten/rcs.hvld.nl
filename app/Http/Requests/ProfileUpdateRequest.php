@@ -9,6 +9,12 @@ use Illuminate\Validation\Rule;
 class ProfileUpdateRequest extends FormRequest
 {
     /**
+     * Request: ProfileUpdateRequest
+     *
+     * Valideert gegevens voor het bijwerken van het gebruikersprofiel.
+     * Hier definiëren we de regels voor naam, e-mail en eventueel andere velden.
+     */
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>

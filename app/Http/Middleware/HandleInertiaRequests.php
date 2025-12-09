@@ -8,6 +8,12 @@ use Inertia\Middleware;
 class HandleInertiaRequests extends Middleware
 {
     /**
+     * Middleware: HandleInertiaRequests
+     *
+     * Extends Inertia middleware om gedeelde data (zoals authenticated user) beschikbaar
+     * te maken voor de frontend en om aanvullende headers of props in te stellen.
+     */
+    /**
      * The root template that is loaded on the first page visit.
      *
      * @var string

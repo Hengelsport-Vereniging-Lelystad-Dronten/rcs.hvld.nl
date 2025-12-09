@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Auth Controller: AuthenticatedSessionController
+ *
+ * Verwerkt inloggen en uitloggen van gebruikers. Gebruikt het LoginRequest
+ * om credentials te valideren en zorgt voor sessie-regeneratie na succesvolle login.
+ */
 class AuthenticatedSessionController extends Controller
 {
     /**

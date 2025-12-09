@@ -5,6 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Model: Overtreding
+ *
+ * Beschrijft een enkele overtreding die tijdens een controle-ronde is geregistreerd.
+ * Bevat verwijzingen naar het type overtreding, de vispas (optioneel), de genomen maatregel
+ * en eventuele aanvullende details.
+ */
 class Overtreding extends Model
 {
     use HasFactory;

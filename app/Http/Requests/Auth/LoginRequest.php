@@ -12,6 +12,12 @@ use Illuminate\Validation\ValidationException;
 class LoginRequest extends FormRequest
 {
     /**
+     * Request: LoginRequest
+     *
+     * Valideert en verwerkt inlogpogingen. Bevat rate-limiting logica om brute-force
+     * te voorkomen en een helper methode `authenticate()` om de werkelijke login uit te voeren.
+     */
+    /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool

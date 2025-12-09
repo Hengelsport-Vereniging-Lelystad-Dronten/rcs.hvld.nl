@@ -9,10 +9,20 @@ use App\Models\Strafmaat; // NIEUW: Importeer het model voor de lijst met sancti
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
+/**
+ * Controller: ControleRondeController
+ *
+ * Beheert het starten, tonen, afronden en verwijderen van controle-rondes.
+ * Deze controller levert data aan Inertia pages en zorgt dat gerelateerde modellen
+ * (zoals `overtredingTypes` en `strafmaten`) beschikbaar zijn voor de Vue frontend.
+ */
 class ControleRondeController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Toon een overzicht van alle controle-rondes.
+     * Laadt de gerelateerde gebruiker en water en telt het aantal overtredingen.
+     *
+     * @return \Inertia\Response
      */
     public function index()
     {

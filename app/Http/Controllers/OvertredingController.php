@@ -10,10 +10,24 @@ use App\Mail\VispasIngenomenMail;
 
 use App\Models\OvertredingType;
 
+/**
+ * Controller: OvertredingController
+ *
+ * Behandelt het aanmaken van overtredingen gekoppeld aan een controle-ronde.
+ * Voor deze applicatie wordt alleen de `store`-actie gebruikt — overtredingen
+ * worden genest onder een ControleRonde en hoeven niet los te worden beheerd.
+ */
 class OvertredingController extends Controller
 {
     /**
      * Store a newly created overtreding in storage, gekoppeld aan een actieve ronde.
+     *
+     * Valideert de input, controleert of de ronde actief is, bepaalt de juiste maatregel
+     * (standaard of recidive) en maakt de overtreding aan. Stuurt eventueel een notificatie
+     * wanneer een vispas is ingenomen.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request)
     {
