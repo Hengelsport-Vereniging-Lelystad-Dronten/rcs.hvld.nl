@@ -68,12 +68,6 @@ Route::middleware('auth')->group(function () {
     // CUSTOM ACTIE: SNEL WATER TOEVOEGEN
     // Route voor een snelle POST-actie om een nieuw water (locatie) toe te voegen vanuit de controle-flow.
     Route::post('/waters/store-quick', [WaterQuickAddController::class, 'store'])->name('waters.store-quick');
-
-    // PERIODIEKE RAPPORTAGES
-    // Routes voor beheerders om wekelijks, maandelijks, kwartaal en custom rapporten in te zien en te downloaden.
-    Route::resource('reports', \App\Http\Controllers\ReportController::class)
-        ->only(['index', 'show', 'download']);
-    Route::post('/reports/generate', [\App\Http\Controllers\ReportController::class, 'generate'])->name('reports.generate');
 });
 
 
@@ -83,6 +77,15 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'beheerder'])->group(function () {
     // Basis Beheer Dashboard: Hoofdpagina voor beheerders met managementoverzichten.
     Route::get('/beheer', [App\Http\Controllers\BeheerController::class, 'index'])->name('beheer.index');
+
+    // PERIODIEKE RAPPORTAGES
+    // Routes voor beheerders om wekelijks, maandelijks, kwartaal en custom rapporten in te zien en te downloaden.
+    Route::resource('beheer/reports', \App\Http\Controllers\ReportController::class)
+        ->only(['index', 'show'])
+        ->names('beheer.reports');
+    Route::post('/beheer/reports/generate', [\App\Http\Controllers\ReportController::class, 'generate'])->name('beheer.reports.generate');
+    Route::get('/beheer/reports/{report}/download', [\App\Http\Controllers\ReportController::class, 'download'])->name('beheer.reports.download');
+
 
     // GEBRUIKERS BEHEER (CRUD)
     // Resource routes voor het beheren van gebruikers (overzicht, aanmaken, bewerken, verwijderen).

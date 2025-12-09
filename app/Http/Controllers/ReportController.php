@@ -33,7 +33,7 @@ class ReportController extends Controller
         $reports = Report::orderByDesc('generated_at')
             ->paginate(15);
 
-        return Inertia::render('Reports/Index', [
+        return Inertia::render('Beheer/Reports/Index', [
             'reports' => $reports,
         ]);
     }
@@ -45,7 +45,7 @@ class ReportController extends Controller
     {
         abort_unless(auth()->user()->isBeheerder(), 403);
 
-        return Inertia::render('Reports/Show', [
+        return Inertia::render('Beheer/Reports/Show', [
             'report' => $report,
         ]);
     }
