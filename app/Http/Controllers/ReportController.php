@@ -28,7 +28,7 @@ class ReportController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorize('beheerder');
+        abort_unless(auth()->user()->isBeheerder(), 403);
 
         $reports = Report::orderByDesc('generated_at')
             ->paginate(15);
@@ -43,7 +43,7 @@ class ReportController extends Controller
      */
     public function show(Report $report)
     {
-        $this->authorize('beheerder');
+        abort_unless(auth()->user()->isBeheerder(), 403);
 
         return Inertia::render('Reports/Show', [
             'report' => $report,
@@ -55,7 +55,7 @@ class ReportController extends Controller
      */
     public function generate(Request $request)
     {
-        $this->authorize('beheerder');
+        abort_unless(auth()->user()->isBeheerder(), 403);
 
         $validated = $request->validate([
             'report_type' => 'required|in:weekly,monthly,quarterly,custom',
@@ -98,7 +98,7 @@ class ReportController extends Controller
      */
     public function download(Report $report)
     {
-        $this->authorize('beheerder');
+        abort_unless(auth()->user()->isBeheerder(), 403);
 
         $filename = "rapport_{$report->report_type}_{$report->period_start->format('Y-m-d')}.json";
 
