@@ -8,6 +8,11 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Auth Controller: EmailVerificationPromptController
+ *
+ * Toont de prompt voor e-mailverificatie wanneer een gebruiker nog niet is geverifieerd.
+ */
 class EmailVerificationPromptController extends Controller
 {
     /**

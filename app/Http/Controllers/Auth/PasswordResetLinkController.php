@@ -10,6 +10,11 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Auth Controller: PasswordResetLinkController
+ *
+ * Behandelt het aanvragen van een wachtwoord-reset link.
+ */
 class PasswordResetLinkController extends Controller
 {
     /**

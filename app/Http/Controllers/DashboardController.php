@@ -12,6 +12,12 @@ use Illuminate\Support\Facades\DB; // Nodig voor statistieken
 class DashboardController extends Controller
 {
     /**
+     * Controller: DashboardController
+     *
+     * Verstrekt data voor het dashboard (overzicht) van de applicatie. Meestal bevat
+     * dit samenvattingen zoals actieve rondes, recente overtredingen en statistieken.
+     */
+    /**
      * Toon het overzicht/dashboard voor coördinatoren en beheerders.
      */
     public function index()

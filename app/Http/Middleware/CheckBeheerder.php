@@ -9,6 +9,12 @@ use Symfony\Component\HttpFoundation\Response;
 class CheckBeheerder
 {
     /**
+     * Middleware: CheckBeheerder
+     *
+     * Controleert of de ingelogde gebruiker de juiste rol heeft om beheer-pagina's te benaderen.
+     * Indien niet geautoriseerd, wordt de gebruiker doorverwezen of een 403 geretourneerd.
+     */
+    /**
      * Handle an incoming request.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next

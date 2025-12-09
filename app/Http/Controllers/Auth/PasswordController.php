@@ -8,6 +8,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
+/**
+ * Auth Controller: PasswordController
+ *
+ * Verwerkt updates van het wachtwoord voor ingelogde gebruikers.
+ * Valideert het huidige wachtwoord en stelt een nieuw wachtwoord in.
+ */
 class PasswordController extends Controller
 {
     /**

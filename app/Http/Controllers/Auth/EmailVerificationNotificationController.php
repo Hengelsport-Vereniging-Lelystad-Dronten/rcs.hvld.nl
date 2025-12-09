@@ -6,6 +6,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Auth Controller: EmailVerificationNotificationController
+ *
+ * Stuurt een nieuwe e-mail verificatie link naar de gebruiker wanneer daarom gevraagd.
+ */
 class EmailVerificationNotificationController extends Controller
 {
     /**

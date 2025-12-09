@@ -7,6 +7,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * Model: User
+ *
+ * Vertegenwoordigt een gebruiker van het systeem (bijv. een controleur of beheerder).
+ * Bevat helper-methodes zoals `isBeheerder()` en definities voor mass assignment,
+ * verborgen attributen en casts.
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */

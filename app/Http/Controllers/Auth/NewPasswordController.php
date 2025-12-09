@@ -14,6 +14,12 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Auth Controller: NewPasswordController
+ *
+ * Behandelt het tonen van het reset-wachtwoord formulier en het daadwerkelijk
+ * doorvoeren van een wachtwoordreset wanneer de gebruiker een geldige token heeft.
+ */
 class NewPasswordController extends Controller
 {
     /**

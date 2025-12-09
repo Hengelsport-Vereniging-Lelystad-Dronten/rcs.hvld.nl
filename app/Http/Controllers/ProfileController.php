@@ -14,6 +14,11 @@ use Inertia\Response;
 class ProfileController extends Controller
 {
     /**
+     * Controller: ProfileController
+     *
+     * Behandelt weergave en updates van het ingelogde gebruikersprofiel.
+     */
+    /**
      * Display the user's profile form.
      */
     public function edit(Request $request): Response

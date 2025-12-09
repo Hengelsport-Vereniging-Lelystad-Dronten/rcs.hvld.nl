@@ -8,6 +8,12 @@ use Illuminate\Http\Request;
 class WaterQuickAddController extends Controller
 {
     /**
+     * Controller: WaterQuickAddController
+     *
+     * Biedt een eenvoudige, snelle manier om een nieuw `Water` toe te voegen vanuit de UI.
+     * Deze controller verwerkt vaak AJAX-aanvragen of compacte formulieren.
+     */
+    /**
      * Store een nieuw water, specifiek voor snelle toevoeging door de controleur.
      */
     public function store(Request $request)

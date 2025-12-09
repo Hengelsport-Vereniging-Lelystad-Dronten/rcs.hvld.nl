@@ -10,6 +10,12 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Mailable: VispasIngenomenMail
+ *
+ * Wordt verzonden wanneer een vispas is ingenomen bij het registreren van een overtreding.
+ * Bevat de overtreding en relevante relaties voor weergave in de e-mailtemplate.
+ */
 class VispasIngenomenMail extends Mailable
 {
     use Queueable, SerializesModels;

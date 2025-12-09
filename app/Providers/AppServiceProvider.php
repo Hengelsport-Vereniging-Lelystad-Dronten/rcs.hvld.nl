@@ -7,6 +7,12 @@ use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\Facades\Gate; // Importeer de Gate Facade
 use App\Models\User; // <-- ESSENTIEEL: Importeer het User model
 
+/**
+ * Service Provider: AppServiceProvider
+ *
+ * Wordt automatisch geladen door Laravel. Hier kunnen globale services of gates
+ * worden geregistreerd en bootstrap-logic worden geplaatst (zoals Vite prefetch).
+ */
 class AppServiceProvider extends ServiceProvider
 {
     /**

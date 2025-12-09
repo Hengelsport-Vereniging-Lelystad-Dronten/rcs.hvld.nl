@@ -7,6 +7,12 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\RedirectResponse;
 
+/**
+ * Auth Controller: VerifyEmailController
+ *
+ * Handelt het verifiëren van het e-mailadres van de gebruiker via de
+ * standaard Laravel email verification flow.
+ */
 class VerifyEmailController extends Controller
 {
     /**

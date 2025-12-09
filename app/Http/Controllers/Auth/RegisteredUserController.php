@@ -13,6 +13,12 @@ use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Auth Controller: RegisteredUserController
+ *
+ * Behandelt registratie van nieuwe gebruikers via de frontend.
+ * Valideert input, maakt de gebruiker aan en logt deze direct in.
+ */
 class RegisteredUserController extends Controller
 {
     /**

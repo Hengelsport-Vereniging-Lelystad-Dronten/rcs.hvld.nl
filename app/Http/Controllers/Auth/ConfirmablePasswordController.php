@@ -10,6 +10,11 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Auth Controller: ConfirmablePasswordController
+ *
+ * Laat gebruikers hun wachtwoord bevestigen voor gevoelige acties.
+ */
 class ConfirmablePasswordController extends Controller
 {
     /**
