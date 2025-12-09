@@ -68,6 +68,12 @@ Route::middleware('auth')->group(function () {
     // CUSTOM ACTIE: SNEL WATER TOEVOEGEN
     // Route voor een snelle POST-actie om een nieuw water (locatie) toe te voegen vanuit de controle-flow.
     Route::post('/waters/store-quick', [WaterQuickAddController::class, 'store'])->name('waters.store-quick');
+
+    // PERIODIEKE RAPPORTAGES
+    // Routes voor beheerders om wekelijks, maandelijks, kwartaal en custom rapporten in te zien en te downloaden.
+    Route::resource('reports', \App\Http\Controllers\ReportController::class)
+        ->only(['index', 'show', 'download']);
+    Route::post('/reports/generate', [\App\Http\Controllers\ReportController::class, 'generate'])->name('reports.generate');
 });
 
 
