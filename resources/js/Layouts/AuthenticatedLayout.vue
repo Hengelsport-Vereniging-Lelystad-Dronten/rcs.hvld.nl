@@ -1,4 +1,11 @@
 <script setup>
+// AuthenticatedLayout.vue
+// Hoofdlayout voor ingelogde gebruikers. Bevat de globale navigatie,
+// het gebruikersmenu en de plaats waar child-pages hun `header` en
+// hoofdcontent plaatsen via slots.
+//
+// Deze component centraliseert autorisatie-afhankelijke links (bijv. Beheer)
+// en toont een banner als de app in een ontwikkelomgeving draait.
 // ====================================================================
 // IMPORTS
 // Hier importeren we alle benodigde componenten en functionaliteit.

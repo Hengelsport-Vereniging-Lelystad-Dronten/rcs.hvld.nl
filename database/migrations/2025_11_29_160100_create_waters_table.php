@@ -1,14 +1,16 @@
 <?php
 
+/**
+ * database/migrations/2025_11_29_160100_create_waters_table.php
+ *
+ * Creëert de tabel `waters` met velden voor naam, type, beheersgebied,
+ * beschrijving en GPS-coördinaten. Commentaar binnen de kolommen helpt
+ * ontwikkelaars te begrijpen waarom types zoals DECIMAL(10,7) en TEXT zijn gekozen.
+ */
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-
-/**
- * Migratie voor het aanmaken van de 'waters' tabel.
- * Deze versie gebruikt het ENUM-type voor 'type', TEXT voor 'beschrijving' en
- * DECIMAL(10, 7) voor de GPS-coördinaten voor optimale precisie.
- */
 return new class extends Migration
 {
     /**

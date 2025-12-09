@@ -7,6 +7,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
+/**
+ * tests/Feature/Auth/PasswordUpdateTest.php
+ *
+ * Verifieert de flow voor het bijwerken van het wachtwoord via het profiel
+ * (current password verificatie + bevestiging). Deze tests gebruiken
+ * RefreshDatabase om een schone testomgeving te garanderen.
+ */
 class PasswordUpdateTest extends TestCase
 {
     use RefreshDatabase;

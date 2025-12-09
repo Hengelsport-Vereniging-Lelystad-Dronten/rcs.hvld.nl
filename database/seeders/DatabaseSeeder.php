@@ -7,6 +7,14 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * database/seeders/DatabaseSeeder.php
+ *
+ * Centrale seeder die vaste (production-safe) accounts en referentiegegevens
+ * invoegt. Deze file roept specifieke seeders aan voor Strafmaten, OvertredingTypes
+ * en Wateren. Let op: de wachtwoorden in deze seeder zijn gehashte waarden
+ * en moeten niet in openbare repositories staan zonder extra beveiliging.
+ */
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;

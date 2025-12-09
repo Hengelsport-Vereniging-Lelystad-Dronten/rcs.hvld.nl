@@ -1,14 +1,16 @@
 <?php
 
+/**
+ * database/migrations/2025_12_01_103420_create_strafmaten_table.php
+ *
+ * Creëert de `strafmaten` tabel met een unieke `order_id` zodat de volgorde
+ * in dropdowns en lijsten consistent en handmatig te bepalen is.
+ * De tabel bevat een korte code, omschrijving en timestamps.
+ */
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-
-/**
- * Migratie klasse om de 'strafmaten' tabel aan te maken.
- * Deze tabel zal alle mogelijke bestraffingen bevatten die een controleur kan opleggen, 
- * inclusief een vaste sorteervolgorde (order_id).
- */
 return new class extends Migration
 {
     /**

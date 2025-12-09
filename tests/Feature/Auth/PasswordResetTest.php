@@ -44,26 +44,32 @@ class PasswordResetTest extends TestCase
             $response->assertStatus(200);
 
             return true;
-        });
-    }
+        <?php
 
-    public function test_password_can_be_reset_with_valid_token(): void
-    {
-        Notification::fake();
+        namespace Tests\Feature\Auth;
 
-        $user = User::factory()->create();
+        use App\Models\User;
+        use Illuminate\Foundation\Testing\RefreshDatabase;
+        use Illuminate\Support\Facades\Password;
+        use Tests\TestCase;
 
-        $this->post('/forgot-password', ['email' => $user->email]);
+        /**
+         * tests/Feature/Auth/PasswordResetTest.php
+         *
+         * Testen rond het aanvragen en verwerken van wachtwoord-reset links.
+         * Deze tests simuleren het aanmaken van tokens en controleren de responses.
+         */
+        class PasswordResetTest extends TestCase
+        {
+            use RefreshDatabase;
 
-        Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
-            $response = $this->post('/reset-password', [
-                'token' => $notification->token,
-                'email' => $user->email,
-                'password' => 'password',
-                'password_confirmation' => 'password',
-            ]);
+            public function test_reset_password_link_screen_can_be_rendered(): void
+            {
+                $response = $this->get('/forgot-password');
 
-            $response
+                $response->assertStatus(200);
+            }
+        }
                 ->assertSessionHasNoErrors()
                 ->assertRedirect(route('login'));
 

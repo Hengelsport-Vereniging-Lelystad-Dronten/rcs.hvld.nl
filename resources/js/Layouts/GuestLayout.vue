@@ -1,4 +1,7 @@
 <script setup>
+// GuestLayout.vue
+// Eenvoudige layout gebruikt voor gastpagina's (login, register, wachtwoordreset).
+// Toont alleen het applicatielogo en geeft child content via een slot.
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import { Link } from '@inertiajs/vue3';
 </script>

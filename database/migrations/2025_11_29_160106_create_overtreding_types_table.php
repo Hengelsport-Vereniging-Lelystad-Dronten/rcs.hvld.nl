@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * database/migrations/2025_11_29_160106_create_overtreding_types_table.php
+ *
+ * Creëert de `overtreding_types` tabel met korte codes en uitgebreide
+ * toelichtende tekst. Deze types worden gebruikt om overtredingen te categoriseren.
+ */
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

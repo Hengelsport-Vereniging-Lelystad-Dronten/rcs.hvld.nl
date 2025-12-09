@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * database/migrations/2025_11_29_151035_create_personal_access_tokens_table.php
+ *
+ * Migratie voor de 'personal_access_tokens' tabel gebruikt door Laravel Sanctum
+ * voor API tokens gekoppeld aan gebruikers. Houd gevoelige velden veilig.
+ */
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

@@ -6,6 +6,13 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+/**
+ * tests/Feature/Auth/AuthenticationTest.php
+ *
+ * Testen voor de basis authenticatiestromen zoals het renderen van het
+ * login-scherm en het succesvol inloggen van een gebruiker. Deze tests
+ * gebruiken de RefreshDatabase trait om de DB schoon te houden.
+ */
 class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
@@ -16,7 +23,7 @@ class AuthenticationTest extends TestCase
 
         $response->assertStatus(200);
     }
-
+}
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
         $user = User::factory()->create();

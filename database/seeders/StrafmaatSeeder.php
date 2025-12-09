@@ -7,13 +7,12 @@ use Illuminate\Database\Seeder;
 // Geen Carbon import nodig, we gebruiken de Laravel helper now()
 
 /**
- * Seeder voor het vullen van de 'strafmaten' tabel met initiële, standaard data.
- * Nu inclusief de 'order_id' om een vaste, handmatig gedefinieerde sorteervolgorde
- * te garanderen voor dropdowns en overzichten in de hele applicatie.
+ * database/seeders/StrafmaatSeeder.php
  *
- * BELANGRIJKE ONDERSCHEIDINGEN:
- * - VPA-ZT: Zeer tijdelijke inname van de VISpas, typisch een actie in het veld.
- * - VPA-T/P: Formele disciplinaire inname/intrekking via bestuur of tuchtcommissie.
+ * Seeder die standaard strafmaten aanmaakt met een expliciete `order_id`.
+ * De `order_id` wordt gebruikt in de UI om consistentie in dropdowns en lijsten
+ * te garanderen. Pas deze seeder aan wanneer je de volgorde van strafmaten
+ * wilt wijzigen.
  */
 class StrafmaatSeeder extends Seeder
 {

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * routes/web.php
+ *
+ * Register web routes voor de applicatie.
+ *
+ * Dit bestand bevat de routes die HTML/Inertia-views teruggeven
+ * en typische webmiddleware (sessies, CSRF, auth) gebruiken.
+ * Commentaar en secties in dit bestand zijn in het Nederlands
+ * om snellere navigatie en onderhoud door het team te ondersteunen.
+ */
+
 use App\Http\Controllers\ControleRondeController;
 use App\Http\Controllers\OvertredingController;
 use App\Http\Controllers\WaterQuickAddController;

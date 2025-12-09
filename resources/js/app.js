@@ -1,3 +1,6 @@
+// resources/js/app.js
+// Hoofdingang voor de frontend JavaScript bundel.
+// Initialiseert Inertia + Vue en registreert globale plugins.
 import '../css/app.css';
 import './bootstrap';
 

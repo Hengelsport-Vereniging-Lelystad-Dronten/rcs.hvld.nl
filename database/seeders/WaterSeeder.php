@@ -6,6 +6,12 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * database/seeders/WaterSeeder.php
+ *
+ * Seeder die een set bekende wateren (locaties) invoegt met coördinaten,
+ * beheersgebied en optionele beschrijving. Handig voor development en testing.
+ */
 class WaterSeeder extends Seeder
 {
     /**

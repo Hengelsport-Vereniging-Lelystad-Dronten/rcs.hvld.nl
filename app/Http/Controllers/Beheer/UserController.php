@@ -8,6 +8,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
+/**
+ * Controller: UserController
+ *
+ * Beheert CRUD-operaties voor gebruikers (Accounts) in het beheergedeelte.
+ * Deze controller levert data aan Inertia-componenten en verzorgt validatie,
+ * creatie, update en verwijdering van gebruikersaccounts.
+ */
 class UserController extends Controller
 {
     /**
