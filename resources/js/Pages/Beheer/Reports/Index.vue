@@ -31,6 +31,17 @@ const generateReport = () => {
 const downloadReport = (reportId) => {
     window.location.href = route('beheer.reports.download', reportId);
 };
+
+const deleteReport = (reportId) => {
+    if (!confirm('Weet je zeker dat je dit rapport wilt verwijderen? Dit kan niet ongedaan gemaakt worden.')) return;
+
+    router.delete(route('beheer.reports.destroy', reportId), {}, {
+        onFinish: () => {
+            // eenvoudige refresh naar index
+            router.reload();
+        }
+    });
+};
 </script>
 
 <template>
@@ -90,6 +101,7 @@ const downloadReport = (reportId) => {
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rapporttype</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aangemaakt door</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Periode</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gegenereerd op</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acties</th>
@@ -101,6 +113,9 @@ const downloadReport = (reportId) => {
                                         {{ report.report_type }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        {{ report.creator ? report.creator.name : 'Systeem' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                         {{ new Date(report.period_start).toLocaleDateString() }} - {{ new Date(report.period_end).toLocaleDateString() }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
@@ -109,6 +124,7 @@ const downloadReport = (reportId) => {
                                     <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                                         <Link :href="route('beheer.reports.show', report.id)" class="text-indigo-600 hover:text-indigo-900">Bekijk</Link>
                                         <button @click="downloadReport(report.id)" class="text-indigo-600 hover:text-indigo-900">Download</button>
+                                        <button @click="deleteReport(report.id)" class="text-red-600 hover:text-red-900">Verwijder</button>
                                     </td>
                                 </tr>
                             </tbody>

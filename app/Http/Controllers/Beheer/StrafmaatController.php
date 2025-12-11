@@ -82,7 +82,11 @@ class StrafmaatController extends Controller
             'order_id' => ['required', 'integer', 'min:1', Rule::unique('strafmaten', 'order_id')], 
         ]);
 
-        Strafmaat::create($validated);
+        $strafmaat = Strafmaat::create($validated);
+
+        activity()
+            ->performedOn($strafmaat)
+            ->log('Strafmaat aangemaakt');
 
         return Redirect::route('beheer.strafmaten.index')
             ->with('success', 'Strafmaat "' . ($validated['code'] ?? $validated['omschrijving']) . '" succesvol aangemaakt.');
@@ -118,8 +122,15 @@ class StrafmaatController extends Controller
             'omschrijving' => ['required', 'string', 'max:500'],
             'order_id' => ['required', 'integer', 'min:1', Rule::unique('strafmaten', 'order_id')->ignore($strafmaten->id)],
         ]);
+        
+        $oldData = $strafmaten->only(['code', 'omschrijving', 'order_id']);
 
         $strafmaten->update($validated);
+
+        activity()
+            ->performedOn($strafmaten)
+            ->withProperties(['old' => $oldData, 'new' => $validated])
+            ->log('Strafmaat bijgewerkt');
 
         return Redirect::route('beheer.strafmaten.index')
             ->with('success', 'Strafmaat "' . ($strafmaten->code ?? $strafmaten->omschrijving) . '" succesvol bijgewerkt.');
@@ -134,6 +145,11 @@ class StrafmaatController extends Controller
     public function destroy(Strafmaat $strafmaten): RedirectResponse
     {
         $strafmaatCode = $strafmaten->code ?? $strafmaten->omschrijving;
+        
+        activity()
+            ->performedOn($strafmaten)
+            ->log('Strafmaat verwijderd');
+
         $strafmaten->delete();
 
         return Redirect::route('beheer.strafmaten.index')
@@ -169,6 +185,8 @@ class StrafmaatController extends Controller
                 Strafmaat::where('id', $id)->update(['order_id' => $newOrderId]);
             }
         });
+
+        activity()->log('Sorteervolgorde strafmaten bijgewerkt');
 
         // 3. Stuur een succesvolle JSON-respons terug.
         return response()->json(['message' => 'Volgorde succesvol bijgewerkt.'], 200);

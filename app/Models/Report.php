@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\User;
 
 /**
  * app/Models/Report.php
@@ -19,6 +20,7 @@ class Report extends Model
         'period_end',       // Eind datum/tijd van rapportageperiode
         'data_summary',     // JSON blob met statistieken
         'generated_at',     // Moment van generering
+        'created_by',       // User ID die het rapport heeft aangemaakt
     ];
 
     protected $casts = [
@@ -53,5 +55,13 @@ class Report extends Model
     {
         $data = $this->data_summary ?? [];
         return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * De gebruiker die dit rapport heeft aangemaakt.
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

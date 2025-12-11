@@ -30,7 +30,7 @@ class ReportController extends Controller
     {
         abort_unless(auth()->user()->isBeheerder(), 403);
 
-        $reports = Report::orderByDesc('generated_at')
+        $reports = Report::with('creator')->orderByDesc('generated_at')
             ->paginate(15);
 
         return Inertia::render('Beheer/Reports/Index', [
@@ -45,9 +45,29 @@ class ReportController extends Controller
     {
         abort_unless(auth()->user()->isBeheerder(), 403);
 
+        $report->load('creator');
+
         return Inertia::render('Beheer/Reports/Show', [
             'report' => $report,
         ]);
+    }
+
+    /**
+     * Verwijder een rapport.
+     */
+    public function destroy(Report $report)
+    {
+        abort_unless(auth()->user()->isBeheerder(), 403);
+
+        activity()
+            ->performedOn($report)
+            ->withExtra(['report_type' => $report->report_type, 'period' => $report->period_start->format('Y-m-d') . ' - ' . $report->period_end->format('Y-m-d')])
+            ->log('Rapport verwijderd');
+
+        $report->delete();
+
+        return redirect()->route('beheer.reports.index')
+            ->with('message', 'Rapport succesvol verwijderd.');
     }
 
     /**
@@ -82,14 +102,19 @@ class ReportController extends Controller
             ->first();
 
         if ($existing) {
-            return redirect()->route('reports.show', $existing->id)
+            return redirect()->route('beheer.reports.show', $existing->id)
                 ->with('message', 'Rapport voor deze periode bestaat al.');
         }
 
         // Genereer nieuwe rapport
         $report = $this->reportService->generateReport($reportType, $startDate, $endDate);
 
-        return redirect()->route('reports.show', $report->id)
+        activity()
+            ->performedOn($report)
+            ->withExtra(['report_type' => $report->report_type, 'period' => $report->period_start->format('Y-m-d') . ' - ' . $report->period_end->format('Y-m-d')])
+            ->log('Rapport gegenereerd');
+
+        return redirect()->route('beheer.reports.show', $report->id)
             ->with('message', 'Rapport succesvol gegenereerd.');
     }
 

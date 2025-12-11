@@ -66,6 +66,15 @@ import { Head, Link } from '@inertiajs/vue3';
                                 </Link>
                                 <p class="text-sm text-gray-500">Genereer en bekijk wekelijks, maandelijks, en kwartaalrapporten met statistieken en analyses.</p>
                             </div>
+
+                            <!-- 6. Audit Log -->
+                            <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
+                                <Link :href="route('beheer.auditlog.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
+                                    📜 Audit Log
+                                </Link>
+                                <p class="text-sm text-gray-500">Bekijk een read-only log van alle belangrijke acties die in het systeem zijn uitgevoerd.</p>
+                            </div>
+
                         </div>
                     </div>
                 </div>

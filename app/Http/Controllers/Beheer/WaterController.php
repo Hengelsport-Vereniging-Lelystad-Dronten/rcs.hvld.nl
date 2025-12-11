@@ -65,7 +65,11 @@ class WaterController extends Controller
         $validated['beschrijving'] = strip_tags($validated['beschrijving'] ?? '');
 
         // Gebruik alleen de gevalideerde data
-        Water::create($validated);
+        $water = Water::create($validated);
+
+        activity()
+            ->performedOn($water)
+            ->log('Water aangemaakt');
 
         return redirect()->route('beheer.waters.index')
             ->with('message', 'Water "' . $validated['naam'] . '" succesvol toegevoegd.');
@@ -112,8 +116,15 @@ class WaterController extends Controller
         // Dit voorkomt de fatal error.
         $validated['beschrijving'] = strip_tags($validated['beschrijving'] ?? '');
 
+        $oldData = $water->only(['naam', 'beschrijving', 'latitude', 'longitude']);
+
         // Gebruik alleen de gevalideerde data
         $water->update($validated);
+
+        activity()
+            ->performedOn($water)
+            ->withProperties(['old' => $oldData, 'new' => $validated])
+            ->log('Water bijgewerkt');
 
         return redirect()->route('beheer.waters.index')
             ->with('message', 'Water "' . $water->naam . '" succesvol bijgewerkt.');
@@ -127,6 +138,10 @@ class WaterController extends Controller
         $water = Water::findOrFail($id); // Eerst ophalen
         $water_naam = $water->naam; // Naam vastleggen voor de flash message
         
+        activity()
+            ->performedOn($water)
+            ->log('Water verwijderd');
+
         $water->delete();
 
         return redirect()->route('beheer.waters.index')
