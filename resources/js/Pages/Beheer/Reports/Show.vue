@@ -2,15 +2,15 @@
 // Beheer/Reports/Show.vue
 // Toont details van een gegenereerd rapport met statistieken en exportmogelijkheden.
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 
-defineProps({
+const props = defineProps({
     report: Object,
 });
 
 const downloadAsJson = () => {
-    const filename = `rapport_${report.report_type}_${new Date(report.period_start).toISOString().split('T')[0]}.json`;
-    const dataStr = JSON.stringify(report.data_summary, null, 2);
+    const filename = `rapport_${props.report.report_type}_${new Date(props.report.period_start).toISOString().split('T')[0]}.json`;
+    const dataStr = JSON.stringify(props.report.data_summary, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
 
     const exportFileDefaultName = filename;
@@ -20,6 +20,17 @@ const downloadAsJson = () => {
     linkElement.setAttribute('download', exportFileDefaultName);
     linkElement.click();
 };
+
+const deleteReport = () => {
+    if (!confirm('Weet je zeker dat je dit rapport wilt verwijderen? Dit kan niet ongedaan gemaakt worden.')) return;
+
+    // Gebruik expliciete URL om afhankelijkheid van `route()` te vermijden
+    const url = `/beheer/reports/${props.report.id}`;
+
+    router.delete(url, {}, {
+        onFinish: () => router.visit('/beheer/reports')
+    });
+};
 </script>
 
 <template>
@@ -27,7 +38,7 @@ const downloadAsJson = () => {
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Rapport: {{ report.report_type }}</h2>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Rapport: {{ props.report.report_type }}</h2>
         </template>
 
         <div class="py-12">
@@ -39,43 +50,52 @@ const downloadAsJson = () => {
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <div>
                             <p class="text-sm text-gray-600">Rapporttype</p>
-                            <p class="font-semibold">{{ report.report_type }}</p>
+                            <p class="font-semibold">{{ props.report.report_type }}</p>
                         </div>
                         <div>
                             <p class="text-sm text-gray-600">Periode</p>
-                            <p class="font-semibold">{{ new Date(report.period_start).toLocaleDateString() }} - {{ new Date(report.period_end).toLocaleDateString() }}</p>
+                            <p class="font-semibold">{{ new Date(props.report.period_start).toLocaleDateString() }} - {{ new Date(props.report.period_end).toLocaleDateString() }}</p>
                         </div>
                         <div>
                             <p class="text-sm text-gray-600">Gegenereerd op</p>
-                            <p class="font-semibold">{{ new Date(report.generated_at).toLocaleString() }}</p>
+                            <p class="font-semibold">{{ new Date(props.report.generated_at).toLocaleString() }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Aangemaakt door</p>
+                            <p class="font-semibold">{{ props.report.creator ? props.report.creator.name : 'Systeem' }}</p>
                         </div>
                     </div>
 
-                    <button @click="downloadAsJson" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-                        Download als JSON
-                    </button>
+                    <div class="space-x-2">
+                        <button @click="downloadAsJson" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                            Download als JSON
+                        </button>
+                        <button @click="deleteReport" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                            Verwijder rapport
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Samenvattingsstatistieken -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <p class="text-sm text-gray-600">Totaal Overtredingen</p>
-                        <p class="text-3xl font-bold text-red-600">{{ report.data_summary.total_overtredingen }}</p>
+                        <p class="text-3xl font-bold text-red-600">{{ props.report.data_summary.total_overtredingen }}</p>
                     </div>
 
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <p class="text-sm text-gray-600">Totaal Controlerondes</p>
-                        <p class="text-3xl font-bold text-blue-600">{{ report.data_summary.total_rondes }}</p>
+                        <p class="text-3xl font-bold text-blue-600">{{ props.report.data_summary.total_rondes }}</p>
                     </div>
 
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <p class="text-sm text-gray-600">Ingename VISpassen</p>
-                        <p class="text-3xl font-bold text-orange-600">{{ report.data_summary.vispas_ingenomen_count }}</p>
+                        <p class="text-3xl font-bold text-orange-600">{{ props.report.data_summary.vispas_ingenomen_count }}</p>
                     </div>
 
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <p class="text-sm text-gray-600">Recidivegevallen</p>
-                        <p class="text-3xl font-bold text-purple-600">{{ report.data_summary.recidive_count }}</p>
+                        <p class="text-3xl font-bold text-purple-600">{{ props.report.data_summary.recidive_count }}</p>
                     </div>
                 </div>
 
@@ -91,7 +111,7 @@ const downloadAsJson = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="type in report.data_summary.top_overtredingTypes" :key="type.code" class="border-b">
+                            <tr v-for="type in props.report.data_summary.top_overtredingTypes" :key="type.code" class="border-b">
                                 <td class="px-4 py-2 text-sm">{{ type.code }}</td>
                                 <td class="px-4 py-2 text-sm">{{ type.omschrijving }}</td>
                                 <td class="px-4 py-2 text-sm font-bold">{{ type.count }}</td>
@@ -111,7 +131,7 @@ const downloadAsJson = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="controleur in report.data_summary.top_controleurs" :key="controleur.id" class="border-b">
+                            <tr v-for="controleur in props.report.data_summary.top_controleurs" :key="controleur.id" class="border-b">
                                 <td class="px-4 py-2 text-sm">{{ controleur.name }}</td>
                                 <td class="px-4 py-2 text-sm font-bold">{{ controleur.rondes_count }}</td>
                             </tr>
@@ -130,7 +150,7 @@ const downloadAsJson = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="water in report.data_summary.top_wateren" :key="water.id" class="border-b">
+                            <tr v-for="water in props.report.data_summary.top_wateren" :key="water.id" class="border-b">
                                 <td class="px-4 py-2 text-sm">{{ water.naam }}</td>
                                 <td class="px-4 py-2 text-sm font-bold">{{ water.control_count }}</td>
                             </tr>

@@ -30,6 +30,7 @@ class ReportService
             'period_end' => $endDate,
             'data_summary' => $dataSummary,
             'generated_at' => now(),
+            'created_by' => auth()->check() ? auth()->id() : null,
         ]);
 
         return $report;

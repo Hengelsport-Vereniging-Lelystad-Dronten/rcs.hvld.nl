@@ -56,6 +56,8 @@ class OvertredingTypeController extends Controller
             }
         });
 
+        activity()->log('Sorteervolgorde overtredingstypes bijgewerkt');
+
         // Stuur een lege 200 respons terug, Inertia hoeft de pagina niet volledig opnieuw te laden.
         return response()->json(['message' => 'Sorteervolgorde succesvol bijgewerkt.'], 200);
     }
@@ -88,7 +90,11 @@ class OvertredingTypeController extends Controller
         // Bepaal de volgende sort_order om het nieuwe item onderaan toe te voegen.
         $nextSortOrder = OvertredingType::max('sort_order') + 1;
         
-        OvertredingType::create(array_merge($request->all(), ['sort_order' => $nextSortOrder]));
+        $overtredingType = OvertredingType::create(array_merge($request->all(), ['sort_order' => $nextSortOrder]));
+
+        activity()
+            ->performedOn($overtredingType)
+            ->log('Overtredingstype aangemaakt');
 
         return redirect()->route('beheer.overtreding_types.index')
             ->with('message', 'Overtredingstype ' . $request->code . ' succesvol toegevoegd.');
@@ -122,7 +128,14 @@ class OvertredingTypeController extends Controller
             'recidive_strafmaat_id' => 'nullable|exists:strafmaten,id',
         ]);
 
+        $oldData = $overtredingType->only(['code', 'omschrijving', 'default_strafmaat_id', 'recidive_strafmaat_id']);
+
         $overtredingType->update($request->all());
+
+        activity()
+            ->performedOn($overtredingType)
+            ->withProperties(['old' => $oldData, 'new' => $request->all()])
+            ->log('Overtredingstype bijgewerkt');
 
         return redirect()->route('beheer.overtreding_types.index')
             ->with('message', 'Overtredingstype ' . $overtredingType->code . ' succesvol bijgewerkt.');
@@ -134,6 +147,11 @@ class OvertredingTypeController extends Controller
     public function destroy(string $id)
     {
         $overtredingType = OvertredingType::findOrFail($id);
+        
+        activity()
+            ->performedOn($overtredingType)
+            ->log('Overtredingstype verwijderd');
+
         $overtredingType->delete();
 
         return redirect()->route('beheer.overtreding_types.index')

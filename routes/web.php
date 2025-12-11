@@ -11,6 +11,7 @@
  * om snellere navigatie en onderhoud door het team te ondersteunen.
  */
 
+use App\Http\Controllers\Beheer\AuditLogController;
 use App\Http\Controllers\ControleRondeController;
 use App\Http\Controllers\OvertredingController;
 use App\Http\Controllers\WaterQuickAddController;
@@ -81,7 +82,7 @@ Route::middleware(['auth', 'beheerder'])->group(function () {
     // PERIODIEKE RAPPORTAGES
     // Routes voor beheerders om wekelijks, maandelijks, kwartaal en custom rapporten in te zien en te downloaden.
     Route::resource('beheer/reports', \App\Http\Controllers\ReportController::class)
-        ->only(['index', 'show'])
+        ->only(['index', 'show', 'destroy'])
         ->names('beheer.reports');
     Route::post('/beheer/reports/generate', [\App\Http\Controllers\ReportController::class, 'generate'])->name('beheer.reports.generate');
     Route::get('/beheer/reports/{report}/download', [\App\Http\Controllers\ReportController::class, 'download'])->name('beheer.reports.download');
@@ -117,6 +118,9 @@ Route::middleware(['auth', 'beheerder'])->group(function () {
     Route::post('beheer/strafmaten/order', [StrafmaatController::class, 'updateOrder'])
         ->name('beheer.strafmaten.updateOrder');
 
+    // AUDIT LOG
+    // Route voor het weergeven van het audit log.
+    Route::get('/beheer/auditlog', [AuditLogController::class, 'index'])->name('beheer.auditlog.index');
 });
 
 

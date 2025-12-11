@@ -52,12 +52,16 @@ class UserController extends Controller
             'role' => 'required|in:Beheerder,Coördinator,Controleur',
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
         ]);
+
+        activity()
+            ->performedOn($user)
+            ->log('Gebruiker aangemaakt');
 
         return redirect()->route('beheer.users.index')
             ->with('message', 'Gebruiker "' . $request->name . '" succesvol toegevoegd.');
@@ -112,7 +116,14 @@ class UserController extends Controller
             $userData['password'] = Hash::make($request->password);
         }
 
+        $oldData = $user->only(['name', 'email', 'role']);
+        
         $user->update($userData);
+
+        activity()
+            ->performedOn($user)
+            ->withProperties(['old' => $oldData, 'new' => $userData])
+            ->log('Gebruiker bijgewerkt');
 
         return redirect()->route('beheer.users.index')
             ->with('message', 'Gebruiker "' . $request->name . '" succesvol bijgewerkt.');
@@ -133,6 +144,11 @@ class UserController extends Controller
         }
 
         $userName = $user->name;
+        
+        activity()
+            ->performedOn($user)
+            ->log('Gebruiker verwijderd');
+
         $user->delete();
 
         return redirect()->route('beheer.users.index')
