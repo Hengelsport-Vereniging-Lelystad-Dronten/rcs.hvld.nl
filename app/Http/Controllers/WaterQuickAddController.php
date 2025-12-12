@@ -18,12 +18,13 @@ class WaterQuickAddController extends Controller
      */
     public function store(Request $request)
     {
-        // 1. Validatie: Alleen de naam is verplicht
+        // 1. Validatie: Naam, latitude en longitude zijn verplicht
         $validated = $request->validate([
             'naam' => 'required|string|max:255|unique:waters,naam',
             'type' => 'nullable|string|max:50',
             'beheersgebied' => 'nullable|string|max:255',
-            // detail_tekst niet vereist bij quick add
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
         ]);
         
         // Zorg ervoor dat de user_id van de aanmaker wordt opgeslagen (indien nodig),
