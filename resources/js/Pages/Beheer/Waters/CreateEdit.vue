@@ -1,22 +1,22 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-// WaterBoundaryMap is verwijderd omdat de kaart niet werkt en we alleen GPS-coördinaten nodig hebben.
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import InputError from '@/Components/InputError.vue'; 
+import InputError from '@/Components/InputError.vue';
+import LocationPickerMap from '@/Components/LocationPickerMap.vue';
 
 // De pagina krijgt het water object (indien bestaand) via props
 const props = defineProps({
     water: {
         type: Object,
-        default: () => ({ 
-            id: null, 
-            naam: '', 
-            beschrijving: '', 
-            latitude: null, // GPS Latitude
-            longitude: null, // GPS Longitude
+        default: () => ({
+            id: null,
+            naam: '',
+            beschrijving: '',
+            latitude: 52.5261545, // Default to Lelystad
+            longitude: 5.4729717, // Default to Lelystad
         }),
     },
 });
@@ -31,7 +31,12 @@ const form = useForm({
     longitude: props.water.longitude,   // GPS Longitude
 });
 
-// De updateGps functie is niet meer nodig, omdat we de kaart verwijderd hebben.
+const updateLocation = (location) => {
+    if (location && typeof location.lat !== 'undefined' && typeof location.lng !== 'undefined') {
+        form.latitude = location.lat;
+        form.longitude = location.lng;
+    }
+};
 
 const submit = () => {
     // Stuur alle gegevens (Naam, Beschrijving, GPS) in één keer
@@ -89,52 +94,41 @@ const submit = () => {
                             <InputError class="mt-2" :message="form.errors.beschrijving" />
                         </div>
                         
-                        <!-- GPS Coördinaten (Handmatige Invoer) -->
-                        <div class="pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Latitude Veld -->
-                            <div>
-                                <InputLabel for="latitude" value="Latitude (Breedtegraad) - Vereist" />
-                                <TextInput
-                                    id="latitude"
-                                    v-model="form.latitude"
-                                    type="text"
-                                    class="mt-1 block w-full"
-                                    required
-                                    placeholder="52.1326"
-                                />
-                                <InputError class="mt-2" :message="form.errors.latitude" />
-                            </div>
-
-                            <!-- Longitude Veld -->
-                            <div>
-                                <InputLabel for="longitude" value="Longitude (Lengtegraad) - Vereist" />
-                                <TextInput
-                                    id="longitude"
-                                    v-model="form.longitude"
-                                    type="text"
-                                    class="mt-1 block w-full"
-                                    required
-                                    placeholder="5.2913"
-                                />
-                                <InputError class="mt-2" :message="form.errors.longitude" />
-                            </div>
-                        </div>
-
-                        <!-- Instructies en Link voor GPS-Coördinaten -->
-                        <div class="pt-6 border-t border-gray-200">
-                            <h4 class="text-md font-medium text-gray-700 mb-2">GPS Coördinaten Bepalen</h4>
+                        <!-- GPS Coördinaten (Kaart Selectie) -->
+                        <div class="pt-4">
+                            <InputLabel value="Selecteer Locatie op de Kaart" />
                             <p class="text-sm text-gray-500 mb-2">
-                                Gebruik de onderstaande externe tool om de exacte Latitude en Longitude voor de locatie te vinden.
-                                Kopieer de waarden en plak deze in de velden hierboven.
+                                Klik op de kaart om een locatie te selecteren of sleep de marker naar de juiste plek.
                             </p>
-                            
-                            <a 
-                                href="https://onlinecompass.net/nl/gps-coordinates" 
-                                target="_new" 
-                                class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 transition ease-in-out duration-150 shadow-md"
-                            >
-                                Open GPS Coördinaten Tool
-                            </a>
+                            <LocationPickerMap 
+                                :latitude="form.latitude"
+                                :longitude="form.longitude"
+                                @update:location="updateLocation"
+                            />
+                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                <div>
+                                    <InputLabel for="latitude" value="Latitude (automatisch)" />
+                                    <TextInput
+                                        id="latitude"
+                                        v-model="form.latitude"
+                                        type="text"
+                                        class="mt-1 block w-full bg-gray-100"
+                                        readonly
+                                    />
+                                    <InputError class="mt-2" :message="form.errors.latitude" />
+                                </div>
+                                <div>
+                                    <InputLabel for="longitude" value="Longitude (automatisch)" />
+                                    <TextInput
+                                        id="longitude"
+                                        v-model="form.longitude"
+                                        type="text"
+                                        class="mt-1 block w-full bg-gray-100"
+                                        readonly
+                                    />
+                                    <InputError class="mt-2" :message="form.errors.longitude" />
+                                </div>
+                            </div>
                         </div>
 
                         <div class="flex items-center gap-4 pt-6">
