@@ -24,8 +24,15 @@ const currentWaters = ref(props.waters);
 // ====================================================================
 // FORMULIER LOGICA (useForm)
 // ====================================================================
+const getLocalDateTime = () => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+};
+
 const form = useForm({
-    water_id: currentWaters.value.length > 0 ? currentWaters.value[0].id : '', 
+    water_id: currentWaters.value.length > 0 ? currentWaters.value[0].id : '',
+    start_tijd: getLocalDateTime(),
 });
 
 // ====================================================================
@@ -255,6 +262,18 @@ const submitQuickAdd = async () => {
                             <InputError class="mt-2" :message="form.errors.water_id" />
                         </div>
                         
+                        <div class="mb-4">
+                            <InputLabel for="start_tijd" value="Starttijd" />
+                            <TextInput
+                                id="start_tijd"
+                                type="datetime-local"
+                                class="mt-1 block w-full"
+                                v-model="form.start_tijd"
+                                required
+                            />
+                            <InputError class="mt-2" :message="form.errors.start_tijd" />
+                        </div>
+
                         <div class="mb-6 flex justify-end">
                             <button type="button" @click="showQuickAddModal = true" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
                                 ➕ Water is niet beschikbaar? Voeg toe!
@@ -263,7 +282,7 @@ const submitQuickAdd = async () => {
 
                         <div class="flex items-center justify-end">
                             <PrimaryButton :class="{ 'opacity-25': form.processing || !form.water_id }" :disabled="form.processing || !form.water_id">
-                                Start Ronde Nu
+                                Start Ronde
                             </PrimaryButton>
                         </div>
                     </form>

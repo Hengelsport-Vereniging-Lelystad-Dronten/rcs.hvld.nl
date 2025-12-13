@@ -59,13 +59,14 @@ class ControleRondeController extends Controller
         // 1. Validatie
         $request->validate([
             'water_id' => 'required|exists:waters,id',
+            'start_tijd' => 'nullable|date',
         ]);
 
         // 2. Ronde aanmaken
         $ronde = ControleRonde::create([
             'user_id' => auth()->id(), // De controller is de ingelogde gebruiker
             'water_id' => $request->water_id,
-            'start_tijd' => now(),      // Starttijd is het moment van opslaan
+            'start_tijd' => $request->start_tijd ? $request->start_tijd : now(),      // Starttijd is het moment van opslaan
             'status' => 'Actief',       // De ronde is direct actief
         ]);
 
@@ -142,6 +143,7 @@ class ControleRondeController extends Controller
         // 1. Validatie (alleen opmerkingen zijn optioneel)
         $request->validate([
             'opmerkingen' => 'nullable|string',
+            'eind_tijd' => 'nullable|date',
         ]);
 
         // 2. Controleer of de ronde nog actief is
@@ -152,7 +154,7 @@ class ControleRondeController extends Controller
 
         // 3. De Ronde Afsluiten
         $controleRonde->update([
-            'eind_tijd' => now(), // Registreer het exacte moment van afsluiten
+            'eind_tijd' => $request->eind_tijd ? $request->eind_tijd : now(), // Registreer het exacte moment van afsluiten
             'opmerkingen' => $request->opmerkingen,
             'status' => 'Afgerond', // Zet de status naar afgerond
         ]);
