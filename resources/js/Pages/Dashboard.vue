@@ -2,7 +2,8 @@
 // Dashboard.vue
 // Pagina met overzichtskaarten (KPI's) en recente rondes; gebruikt door ingelogde gebruikers.
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
 
 defineProps({
     stats: Object, // De statistieken van de controller
@@ -20,6 +21,15 @@ defineProps({
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <!-- Knop voor Nieuwe Ronde -->
+                <div class="mb-6 flex justify-center md:justify-start">
+                    <Link :href="route('controles.create')">
+                        <PrimaryButton class="w-full md:w-auto text-center justify-center text-lg py-3 px-6">
+                            Nieuwe Ronde Starten
+                        </PrimaryButton>
+                    </Link>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                     
                     <!-- KPI Kaart: Totaal Overtredingen -->
