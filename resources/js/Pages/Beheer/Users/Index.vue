@@ -76,11 +76,12 @@ const getRoleClass = (role) => {
                     </div>
 
                     <!-- HEADERS: Alleen zichtbaar op desktop (md:) -->
-                    <!-- We gebruiken 4 kolommen voor Naam, E-mail, Rol, en Acties -->
-                    <div class="hidden md:grid grid-cols-4 gap-4 px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 rounded-t-lg">
+                    <!-- We gebruiken 5 kolommen voor Naam, E-mail, Rol, Laatste Login en Acties -->
+                    <div class="hidden md:grid grid-cols-5 gap-4 px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 rounded-t-lg">
                         <div class="col-span-1">Naam</div>
                         <div class="col-span-1">E-mail</div>
                         <div class="col-span-1">Rol</div>
+                        <div class="col-span-1">Laatste Login</div>
                         <div class="col-span-1 text-right">Acties</div>
                     </div>
 
@@ -92,8 +93,8 @@ const getRoleClass = (role) => {
                             class="p-4 md:py-3 md:px-4 hover:bg-gray-50 transition duration-150"
                         >
                             
-                            <!-- Op MD: 4 kolommen. Op SM: Gestapelde velden. -->
-                            <div class="grid grid-cols-1 md:grid-cols-4 gap-y-3 md:gap-4 items-center">
+                            <!-- Op MD: 5 kolommen. Op SM: Gestapelde velden. -->
+                            <div class="grid grid-cols-1 md:grid-cols-5 gap-y-3 md:gap-4 items-center">
                                 
                                 <!-- NAAM (col-span-1 op md) -->
                                 <div>
@@ -112,6 +113,14 @@ const getRoleClass = (role) => {
                                     <p class="text-xs font-medium text-gray-500 uppercase mb-1 md:hidden">Rol</p>
                                     <span :class="getRoleClass(user.role)" class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full">
                                         {{ user.role }}
+                                    </span>
+                                </div>
+
+                                <!-- LAATSTE LOGIN (col-span-1 op md) -->
+                                <div>
+                                    <p class="text-xs font-medium text-gray-500 uppercase mb-1 md:hidden">Laatste Login</p>
+                                    <span class="text-sm text-gray-700">
+                                        {{ user.last_login_at ? new Date(user.last_login_at).toLocaleString('nl-NL') : '-' }}
                                     </span>
                                 </div>
 

@@ -4,8 +4,11 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Vite;
-use Illuminate\Support\Facades\Gate; // Importeer de Gate Facade
-use App\Models\User; // <-- ESSENTIEEL: Importeer het User model
+use Illuminate\Support\Facades\Gate;
+use App\Models\User;
+use Illuminate\Auth\Events\Login;
+use App\Listeners\UpdateLastLogin;
+
 
 /**
  * Service Provider: AppServiceProvider
