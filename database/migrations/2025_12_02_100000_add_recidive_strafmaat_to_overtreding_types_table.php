@@ -1,7 +1,5 @@
 <?php
 
-<?php
-
 /**
  * database/migrations/2025_12_02_100000_add_recidive_strafmaat_to_overtreding_types_table.php
  *
