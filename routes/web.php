@@ -84,6 +84,8 @@ Route::middleware(['auth', 'beheerder'])->group(function () {
     // Routes voor beheerders om wekelijks, maandelijks, kwartaal en custom rapporten in te zien en te downloaden.
     // NIEUW: Statistieken Dashboard (vervangt de oude index)
     Route::get('beheer/reports', [ReportsController::class, 'index'])->name('beheer.reports.index');
+    // NIEUW: PDF Download voor totaalrapportage
+    Route::get('beheer/reports/download', [ReportsController::class, 'downloadReportPdf'])->name('beheer.reports.download');
     // NIEUW: Detailpagina voor recidivisten
     Route::get('beheer/reports/recidivist/{vispasnummer}', [ReportsController::class, 'recidivist'])->name('beheer.reports.recidivist');
     // NIEUW: PDF Download voor recidivisten
