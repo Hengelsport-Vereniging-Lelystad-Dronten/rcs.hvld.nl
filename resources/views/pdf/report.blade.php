@@ -14,7 +14,7 @@
         tbody tr:nth-child(even) { background-color: #f9f9f9; }
         .logo { float: right; height: 60px; margin-top: -10px; }
         .section-title { font-size: 16px; font-weight: bold; margin-top: 20px; margin-bottom: 10px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .kpi-box { display: inline-block; width: 30%; background: #f5f5f5; padding: 10px; margin-right: 2%; text-align: center; border: 1px solid #ddd; border-radius: 5px; }
+        .kpi-box { display: inline-block; width: 25%; background: #f5f5f5; padding: 10px; margin-right: 1%; text-align: center; border: 1px solid #ddd; border-radius: 5px; vertical-align: top; }
         .kpi-value { font-size: 24px; font-weight: bold; display: block; margin-top: 5px; }
         .kpi-label { font-size: 12px; text-transform: uppercase; color: #666; }
         .watermark {
@@ -25,6 +25,18 @@
             width: 400px;
             opacity: 0.1;
             z-index: -1000;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0px;
+            left: 0px;
+            right: 0px;
+            height: 20px;
+            text-align: center;
+            font-size: 10px;
+            color: #999;
+            border-top: 1px solid #eee;
+            padding-top: 5px;
         }
     </style>
 </head>
@@ -42,6 +54,10 @@
                 <strong>Controleur:</strong> {{ $filters['user_name'] }}
             @endif
         </div>
+    </div>
+
+    <div class="footer">
+        RCS - Registratie Controle Systeem | <a href="{{ url('/') }}" style="color: #999; text-decoration: none;">{{ url('/') }}</a>
     </div>
 
     <!-- KPI's -->
