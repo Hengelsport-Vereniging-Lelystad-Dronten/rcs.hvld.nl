@@ -24,3 +24,6 @@ Route::get('water/nearest', [WaterApiController::class, 'nearest'])
 // Zorg ervoor dat de route direct toegankelijk is (of de juiste authenticatie middleware heeft):
 Route::post('/recidive-check', [RecidiveController::class, 'check'])
     ->name('api.recidive-check');
+
+// Voorbeeld voor routes/api.php (indien je dit bestand hebt)
+Route::middleware('auth:sanctum')->get('/reports/download', [\App\Http\Controllers\Beheer\ReportsController::class, 'downloadReportPdf']);

@@ -1,15 +1,9 @@
 <?php
 
-/**
- * routes/console.php
- *
- * Console commands die via `php artisan` beschikbaar zijn. Gebruik dit bestand
- * om korte CLI-commando's te registreren die handig zijn voor onderhoud/tests.
- */
+use Illuminate\Support\Facades\Schedule;
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+// Wekelijks rapport op maandagochtend (over vorige week)
+Schedule::command('report:send last_week bestuur@hvld.nl')->weeklyOn(1, '08:00')->withoutOverlapping()->timezone('Europe/Amsterdam');
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+// Maandelijks rapport op de 1e van de maand (over vorige maand)
+Schedule::command('report:send last_month bestuur@hvld.nl')->monthlyOn(1, '08:00')->withoutOverlapping()->timezone('Europe/Amsterdam');
