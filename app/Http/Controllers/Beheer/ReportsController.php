@@ -221,4 +221,121 @@ class ReportsController extends Controller
 
         return $pdf->download("Dossier_{$vispasnummer}.pdf");
     }
+
+    public function downloadReportPdf(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $userId = $request->input('user_id');
+
+        // Queries (hergebruik logica van index)
+        $roundsQuery = ControleRonde::query();
+        $violationsQuery = Overtreding::query()
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id');
+
+        if ($startDate) {
+            $roundsQuery->whereDate('start_tijd', '>=', $startDate);
+            $violationsQuery->whereDate('controle_rondes.start_tijd', '>=', $startDate);
+        }
+        if ($endDate) {
+            $roundsQuery->whereDate('start_tijd', '<=', $endDate);
+            $violationsQuery->whereDate('controle_rondes.start_tijd', '<=', $endDate);
+        }
+        if ($userId) {
+            $roundsQuery->where('user_id', $userId);
+            $violationsQuery->where('controle_rondes.user_id', $userId);
+        }
+
+        $totalRounds = $roundsQuery->count();
+        $totalViolations = $violationsQuery->count();
+        $activeControllers = $roundsQuery->distinct('user_id')->count('user_id');
+
+        $byWater = Overtreding::query()
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->join('waters', 'controle_rondes.water_id', '=', 'waters.id')
+            ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '<=', $endDate))
+            ->when($userId, fn($q) => $q->where('controle_rondes.user_id', $userId))
+            ->select('waters.naam as name', DB::raw('count(*) as count'))
+            ->groupBy('waters.naam')
+            ->orderByDesc('count')
+            ->limit(10)
+            ->get();
+
+        $byType = Overtreding::query()
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
+            ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '<=', $endDate))
+            ->when($userId, fn($q) => $q->where('controle_rondes.user_id', $userId))
+            ->select('overtreding_types.code', 'overtreding_types.omschrijving as description', DB::raw('count(*) as count'))
+            ->groupBy('overtreding_types.code', 'overtreding_types.omschrijving')
+            ->orderByDesc('count')
+            ->limit(10)
+            ->get();
+
+        $roundsPerUser = ControleRonde::query()
+            ->when($startDate, fn($q) => $q->whereDate('start_tijd', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('start_tijd', '<=', $endDate))
+            ->when($userId, fn($q) => $q->where('user_id', $userId))
+            ->select('user_id', DB::raw('count(*) as total'))
+            ->groupBy('user_id')
+            ->pluck('total', 'user_id');
+
+        $violationsPerUser = Overtreding::query()
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '<=', $endDate))
+            ->when($userId, fn($q) => $q->where('controle_rondes.user_id', $userId))
+            ->select('controle_rondes.user_id', DB::raw('count(*) as total'))
+            ->groupBy('controle_rondes.user_id')
+            ->pluck('total', 'user_id');
+
+        $usersQuery = User::whereIn('role', ['Controleur', 'Beheerder', 'Coördinator']);
+        if ($userId) {
+            $usersQuery->where('id', $userId);
+        }
+        $users = $usersQuery->orderBy('name')->get();
+
+        $byController = $users->map(function ($user) use ($roundsPerUser, $violationsPerUser) {
+            return [
+                'name' => $user->name,
+                'rounds' => $roundsPerUser[$user->id] ?? 0,
+                'violations' => $violationsPerUser[$user->id] ?? 0,
+            ];
+        })->sortByDesc('rounds')->values();
+
+        $recidivism = Overtreding::query()
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->whereNotNull('vispasnummer')
+            ->where('vispasnummer', '!=', '')
+            ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '<=', $endDate))
+            ->when($userId, fn($q) => $q->where('controle_rondes.user_id', $userId))
+            ->select('vispasnummer', DB::raw('count(*) as count'), DB::raw('MAX(overtredingen.created_at) as last_violation_date'))
+            ->groupBy('vispasnummer')
+            ->having('count', '>', 1)
+            ->orderByDesc('count')
+            ->limit(10)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'vispasnummer' => $item->vispasnummer,
+                    'count' => $item->count,
+                    'last_violation_date' => \Carbon\Carbon::parse($item->last_violation_date)->format('d-m-Y H:i'),
+                ];
+            });
+
+        $pdf = Pdf::loadView('pdf.report', [
+            'totals' => ['rounds' => $totalRounds, 'violations' => $totalViolations, 'active_controllers' => $activeControllers],
+            'byWater' => $byWater,
+            'byType' => $byType,
+            'byController' => $byController,
+            'recidivism' => $recidivism,
+            'filters' => ['start_date' => $startDate, 'end_date' => $endDate, 'user_name' => $userId ? User::find($userId)?->name : null],
+            'generated_at' => now()->format('d-m-Y H:i'),
+        ]);
+
+        return $pdf->download('Rapportage_Statistieken.pdf');
+    }
 }
