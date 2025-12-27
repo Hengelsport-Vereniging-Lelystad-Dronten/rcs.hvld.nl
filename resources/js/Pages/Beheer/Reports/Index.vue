@@ -76,7 +76,7 @@ const calculatePercentage = (value, total) => {
 
 const maxMonthCount = computed(() => {
     if (!props.byMonth || props.byMonth.length === 0) return 1;
-    return Math.max(...props.byMonth.map(m => m.count)) || 1;
+    return Math.max(...props.byMonth.map(m => Number(m.count))) || 1;
 });
 </script>
 
@@ -144,14 +144,14 @@ const maxMonthCount = computed(() => {
                     <h3 class="text-lg font-bold text-gray-900 mb-4">Overtredingen per Maand</h3>
                     <div v-if="byMonth.length === 0" class="text-gray-500 italic">Geen data beschikbaar voor deze periode.</div>
                     <div v-else class="flex items-end space-x-4 h-64 border-b border-gray-200 pb-2 overflow-x-auto">
-                        <div v-for="(month, index) in byMonth" :key="index" class="flex flex-col items-center group relative min-w-[3rem]">
+                        <div v-for="(month, index) in byMonth" :key="index" class="flex flex-col items-center group relative min-w-[3rem] h-full justify-end">
                             <!-- Tooltip -->
                             <div class="absolute bottom-full mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10 shadow-lg">
                                 {{ month.label }}: {{ month.count }} overtredingen
                             </div>
                             <!-- Bar -->
                             <div class="w-12 bg-blue-500 rounded-t hover:bg-blue-600 transition-all duration-300 relative" 
-                                :style="{ height: (month.count / maxMonthCount * 100) + '%' }">
+                                :style="{ height: (month.count / maxMonthCount * 80) + '%' }">
                                 <span class="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-bold text-gray-700">{{ month.count }}</span>
                             </div>
                             <!-- Label -->
