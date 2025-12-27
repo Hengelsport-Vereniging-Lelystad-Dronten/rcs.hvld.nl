@@ -228,6 +228,40 @@ class ReportsController extends Controller
         $endDate = $request->input('end_date');
         $userId = $request->input('user_id');
 
+        // API / Automatisering: Ondersteuning voor 'period' parameter
+        // Hiermee kan via een API call (bijv. ?period=daily) automatisch de juiste datumrange worden ingesteld.
+        if ($request->has('period')) {
+            switch ($request->input('period')) {
+                case 'daily':
+                case 'today':
+                    $startDate = now()->format('Y-m-d');
+                    $endDate = now()->format('Y-m-d');
+                    break;
+                case 'yesterday':
+                    $startDate = now()->subDay()->format('Y-m-d');
+                    $endDate = $startDate;
+                    break;
+                case 'weekly':
+                case 'this_week':
+                    $startDate = now()->startOfWeek()->format('Y-m-d');
+                    $endDate = now()->endOfWeek()->format('Y-m-d');
+                    break;
+                case 'last_week':
+                    $startDate = now()->subWeek()->startOfWeek()->format('Y-m-d');
+                    $endDate = now()->subWeek()->endOfWeek()->format('Y-m-d');
+                    break;
+                case 'monthly':
+                case 'this_month':
+                    $startDate = now()->startOfMonth()->format('Y-m-d');
+                    $endDate = now()->endOfMonth()->format('Y-m-d');
+                    break;
+                case 'last_month':
+                    $startDate = now()->subMonth()->startOfMonth()->format('Y-m-d');
+                    $endDate = now()->subMonth()->endOfMonth()->format('Y-m-d');
+                    break;
+            }
+        }
+
         // Queries (hergebruik logica van index)
         $roundsQuery = ControleRonde::query();
         $violationsQuery = Overtreding::query()
