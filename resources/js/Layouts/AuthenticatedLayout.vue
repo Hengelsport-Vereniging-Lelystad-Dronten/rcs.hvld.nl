@@ -103,6 +103,14 @@ const canViewManagementDashboard = user.role === 'Beheerder';
                                     Controle Overzicht
                                 </NavLink>
 
+                                <!-- Nieuwe Link naar Waterkaart -->
+                                <NavLink
+                                    :href="route('uitleg.kaart')"
+                                    :active="route().current('uitleg.kaart')"
+                                >
+                                    Waterkaart
+                                </NavLink>
+
                                 <!-- 5. Rapportages Link (Autorisatie via v-if) -->
                                 <!-- ALLEEN zichtbaar als de gebruiker de rol 'Beheerder' heeft -->
                                 <NavLink

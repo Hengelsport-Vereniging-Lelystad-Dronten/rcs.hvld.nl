@@ -11,19 +11,23 @@
  * om snellere navigatie en onderhoud door het team te ondersteunen.
  */
 
-use App\Http\Controllers\Beheer\AuditLogController;
+
 use App\Http\Controllers\ControleRondeController;
 use App\Http\Controllers\OvertredingController;
 use App\Http\Controllers\WaterQuickAddController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\KaartController;
+use App\Http\Controllers\Beheer\AuditLogController;
+use App\Http\Controllers\Beheer\StrafmaatController;
+use App\Http\Controllers\Beheer\ReportsController;
+
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 // Zorg ervoor dat de controller geïmporteerd is voor gebruik buiten de closures
-use App\Http\Controllers\Beheer\StrafmaatController;
-use App\Http\Controllers\Beheer\ReportsController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -70,6 +74,8 @@ Route::middleware('auth')->group(function () {
     // CUSTOM ACTIE: SNEL WATER TOEVOEGEN
     // Route voor een snelle POST-actie om een nieuw water (locatie) toe te voegen vanuit de controle-flow.
     Route::post('/waters/store-quick', [WaterQuickAddController::class, 'store'])->name('waters.store-quick');
+
+    Route::get('/uitleg/kaart', [KaartController::class, 'index'])->name('uitleg.kaart');
 });
 
 
