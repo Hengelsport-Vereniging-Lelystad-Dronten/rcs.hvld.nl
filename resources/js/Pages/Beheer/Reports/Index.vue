@@ -1,136 +1,257 @@
 <script setup>
-// Beheer/Reports/Index.vue
-// Toont overzicht van alle gegenereerde periodieke rapporten met genereer-formulier.
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Head, router, Link } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
+import InputLabel from '@/Components/InputLabel.vue';
+import TextInput from '@/Components/TextInput.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 
-defineProps({
-    reports: Object,
+const props = defineProps({
+    // Global totals
+    totals: {
+        type: Object,
+        default: () => ({ violations: 0, rounds: 0, active_controllers: 0 })
+    },
+    // Data lists
+    byWater: {
+        type: Array,
+        default: () => []
+    },
+    byType: {
+        type: Array,
+        default: () => []
+    },
+    byController: {
+        type: Array,
+        default: () => []
+    },
+    byMonth: {
+        type: Array,
+        default: () => []
+    },
+    recidivism: {
+        type: Array,
+        default: () => []
+    },
+    // Filters
+    filters: {
+        type: Object,
+        default: () => ({ start_date: '', end_date: '', user_id: '' })
+    },
+    // Dropdown options
+    users: {
+        type: Array,
+        default: () => []
+    }
 });
 
-const reportType = ref('weekly');
-const periodStart = ref('');
-const periodEnd = ref('');
-const loading = ref(false);
+const filterForm = ref({
+    start_date: props.filters.start_date || '',
+    end_date: props.filters.end_date || '',
+    user_id: props.filters.user_id || '',
+});
 
-const generateReport = () => {
-    loading.value = true;
-    router.post(route('beheer.reports.generate'), {
-        report_type: reportType.value,
-        period_start: periodStart.value || null,
-        period_end: periodEnd.value || null,
-    }, {
-        onFinish: () => {
-            loading.value = false;
-        },
+const applyFilters = () => {
+    router.get(route('beheer.reports.index'), filterForm.value, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
     });
 };
 
-const downloadReport = (reportId) => {
-    window.location.href = route('beheer.reports.download', reportId);
+const resetFilters = () => {
+    filterForm.value = {
+        start_date: '',
+        end_date: '',
+        user_id: '',
+    };
+    applyFilters();
 };
 
-const deleteReport = (reportId) => {
-    if (!confirm('Weet je zeker dat je dit rapport wilt verwijderen? Dit kan niet ongedaan gemaakt worden.')) return;
-
-    router.delete(route('beheer.reports.destroy', reportId), {}, {
-        onFinish: () => {
-            // eenvoudige refresh naar index
-            router.reload();
-        }
-    });
+// Helper for percentage bars
+const calculatePercentage = (value, total) => {
+    if (!total) return 0;
+    return Math.round((value / total) * 100);
 };
+
+const maxMonthCount = computed(() => {
+    if (!props.byMonth || props.byMonth.length === 0) return 1;
+    return Math.max(...props.byMonth.map(m => m.count)) || 1;
+});
 </script>
 
 <template>
-    <Head title="Rapporten" />
+    <Head title="Rapportages & Statistieken" />
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Periodieke Rapporten</h2>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Rapportages & Statistieken</h2>
         </template>
 
         <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <!-- Genereer nieuw rapport formulier -->
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Nieuw Rapport Genereren</h3>
-
-                    <div class="space-y-4">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+                
+                <!-- Filters Section -->
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Filter Opties</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Rapporttype</label>
-                            <select v-model="reportType" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="weekly">Wekelijks</option>
-                                <option value="monthly">Maandelijks</option>
-                                <option value="quarterly">Kwartaal</option>
-                                <option value="custom">Custom Periode</option>
+                            <InputLabel for="start_date" value="Start Datum" />
+                            <TextInput id="start_date" type="date" v-model="filterForm.start_date" class="mt-1 block w-full" />
+                        </div>
+                        <div>
+                            <InputLabel for="end_date" value="Eind Datum" />
+                            <TextInput id="end_date" type="date" v-model="filterForm.end_date" class="mt-1 block w-full" />
+                        </div>
+                        <div>
+                            <InputLabel for="user_id" value="Specifieke Controleur" />
+                            <select id="user_id" v-model="filterForm.user_id" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                                <option value="">-- Alle Controleurs --</option>
+                                <option v-for="user in users" :key="user.id" :value="user.id">{{ user.name }}</option>
                             </select>
                         </div>
-
-                        <div v-if="reportType === 'custom'" class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Startdatum</label>
-                                <input v-model="periodStart" type="date" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Einddatum</label>
-                                <input v-model="periodEnd" type="date" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
-                            </div>
-                        </div>
-
-                        <div>
-                            <PrimaryButton @click="generateReport" :disabled="loading">
-                                {{ loading ? 'Genereren...' : 'Rapport Genereren' }}
-                            </PrimaryButton>
+                        <div class="flex space-x-2">
+                            <PrimaryButton @click="applyFilters">Filteren</PrimaryButton>
+                            <button @click="resetFilters" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">Reset</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Overzicht gegenereerde rapporten -->
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Gegenereerde Rapporten</h3>
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-blue-500">
+                        <div class="text-gray-500 text-sm font-medium uppercase">Totaal Controles</div>
+                        <div class="text-3xl font-bold text-gray-900 mt-1">{{ totals.rounds }}</div>
+                    </div>
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-red-500">
+                        <div class="text-gray-500 text-sm font-medium uppercase">Totaal Overtredingen</div>
+                        <div class="text-3xl font-bold text-gray-900 mt-1">{{ totals.violations }}</div>
+                    </div>
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-green-500">
+                        <div class="text-gray-500 text-sm font-medium uppercase">Actieve Controleurs</div>
+                        <div class="text-3xl font-bold text-gray-900 mt-1">{{ totals.active_controllers }}</div>
+                    </div>
+                </div>
 
-                        <div v-if="reports.data.length === 0" class="text-gray-500 text-center py-6">
-                            Geen rapporten gegenereerd. Genereer er een hierboven.
+                <!-- Grafiek: Overtredingen per Maand -->
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Overtredingen per Maand</h3>
+                    <div v-if="byMonth.length === 0" class="text-gray-500 italic">Geen data beschikbaar voor deze periode.</div>
+                    <div v-else class="flex items-end space-x-4 h-64 border-b border-gray-200 pb-2 overflow-x-auto">
+                        <div v-for="(month, index) in byMonth" :key="index" class="flex flex-col items-center group relative min-w-[3rem]">
+                            <!-- Tooltip -->
+                            <div class="absolute bottom-full mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10 shadow-lg">
+                                {{ month.label }}: {{ month.count }} overtredingen
+                            </div>
+                            <!-- Bar -->
+                            <div class="w-12 bg-blue-500 rounded-t hover:bg-blue-600 transition-all duration-300 relative" 
+                                :style="{ height: (month.count / maxMonthCount * 100) + '%' }">
+                                <span class="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-bold text-gray-700">{{ month.count }}</span>
+                            </div>
+                            <!-- Label -->
+                            <div class="mt-2 text-xs text-gray-600 whitespace-nowrap">{{ month.label }}</div>
                         </div>
+                    </div>
+                </div>
 
-                        <table v-else class="min-w-full divide-y divide-gray-200">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    
+                    <!-- Top Wateren -->
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Overtredingen per Water</h3>
+                        <div v-if="byWater.length === 0" class="text-gray-500 italic">Geen data beschikbaar.</div>
+                        <div v-else class="space-y-4">
+                            <div v-for="(water, index) in byWater" :key="index">
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="font-medium text-gray-700">{{ water.name }}</span>
+                                    <span class="text-gray-900 font-bold">{{ water.count }}</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-blue-600 h-2.5 rounded-full" :style="{ width: calculatePercentage(water.count, totals.violations) + '%' }"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Overtreding Types -->
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Top Overtreding Types</h3>
+                        <div v-if="byType.length === 0" class="text-gray-500 italic">Geen data beschikbaar.</div>
+                        <div v-else class="space-y-4">
+                            <div v-for="(type, index) in byType" :key="index">
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="font-medium text-gray-700">{{ type.code }} - {{ type.description }}</span>
+                                    <span class="text-gray-900 font-bold">{{ type.count }}</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-red-500 h-2.5 rounded-full" :style="{ width: calculatePercentage(type.count, totals.violations) + '%' }"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controleur Statistieken -->
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Prestaties Controleurs</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rapporttype</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aangemaakt door</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Periode</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gegenereerd op</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acties</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Controleur</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aantal Rondes</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Geregistreerde Overtredingen</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gem. per Ronde</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                                <tr v-for="report in reports.data" :key="report.id">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {{ report.report_type }}
+                                <tr v-for="stat in byController" :key="stat.id">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ stat.name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stat.rounds }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stat.violations }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ stat.rounds > 0 ? (stat.violations / stat.rounds).toFixed(2) : '0.00' }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {{ report.creator ? report.creator.name : 'Systeem' }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {{ new Date(report.period_start).toLocaleDateString() }} - {{ new Date(report.period_end).toLocaleDateString() }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {{ new Date(report.generated_at).toLocaleString() }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                                        <Link :href="route('beheer.reports.show', report.id)" class="text-indigo-600 hover:text-indigo-900">Bekijk</Link>
-                                        <button @click="downloadReport(report.id)" class="text-indigo-600 hover:text-indigo-900">Download</button>
-                                        <button @click="deleteReport(report.id)" class="text-red-600 hover:text-red-900">Verwijder</button>
-                                    </td>
+                                </tr>
+                                <tr v-if="byController.length === 0">
+                                    <td colspan="4" class="px-6 py-4 text-center text-gray-500 italic">Geen controleurs data gevonden.</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
+
+                <!-- Recidive Gedrag -->
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Mogelijke Recidivisten (Top 10)</h3>
+                    <p class="text-sm text-gray-500 mb-4">Onderstaande vispasnummers komen meerdere keren voor in de overtredingen database binnen de geselecteerde periode.</p>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vispasnummer</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aantal Overtredingen</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Laatste Overtreding</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr v-for="(recidivist, index) in recidivism" :key="index">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                                        <Link :href="route('beheer.reports.recidivist', recidivist.vispasnummer)" class="text-blue-600 hover:underline hover:text-blue-800" title="Bekijk dossier">
+                                            {{ recidivist.vispasnummer }}
+                                        </Link>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-bold">{{ recidivist.count }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ recidivist.last_violation_date }}</td>
+                                </tr>
+                                <tr v-if="recidivism.length === 0">
+                                    <td colspan="3" class="px-6 py-4 text-center text-gray-500 italic">Geen recidivisten gevonden in deze selectie.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
         </div>
     </AuthenticatedLayout>
