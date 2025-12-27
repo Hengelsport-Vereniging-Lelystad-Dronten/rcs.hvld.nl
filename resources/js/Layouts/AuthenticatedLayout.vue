@@ -103,14 +103,14 @@ const canViewManagementDashboard = user.role === 'Beheerder';
                                     Controle Overzicht
                                 </NavLink>
 
-                                <!-- 4. Beheer sectie (Autorisatie via v-if) -->
+                                <!-- 5. Rapportages Link (Autorisatie via v-if) -->
                                 <!-- ALLEEN zichtbaar als de gebruiker de rol 'Beheerder' heeft -->
                                 <NavLink
                                     v-if="user.role === 'Beheerder'"
-                                    :href="route('beheer.index')"
-                                    :active="route().current('beheer.index')"
+                                    :href="route('beheer.reports.index')"
+                                    :active="route().current('beheer.reports.index')"
                                 >
-                                    Beheer
+                                    Rapportages
                                 </NavLink>
 
                                 <!-- 5. Audit Log Link (Autorisatie via v-if) -->
@@ -121,6 +121,16 @@ const canViewManagementDashboard = user.role === 'Beheerder';
                                     :active="route().current('beheer.auditlog.index')"
                                 >
                                     Audit Log
+                                </NavLink>
+
+                                <!-- 4. Beheer sectie (Autorisatie via v-if) -->
+                                <!-- ALLEEN zichtbaar als de gebruiker de rol 'Beheerder' heeft -->
+                                <NavLink
+                                    v-if="user.role === 'Beheerder'"
+                                    :href="route('beheer.index')"
+                                    :active="route().current('beheer.index')"
+                                >
+                                    Beheer
                                 </NavLink>
                             </div>
                         </div>
@@ -259,6 +269,15 @@ const canViewManagementDashboard = user.role === 'Beheerder';
                             Beheer
                         </ResponsiveNavLink>
 
+                        <!-- 5. Rapportages Link (Mobiel) -->
+                        <ResponsiveNavLink
+                            v-if="user.role === 'Beheerder'"
+                            :href="route('beheer.reports.index')"
+                            :active="route().current('beheer.reports.index')"
+                        >
+                            Rapportages
+                        </ResponsiveNavLink>
+
                         <!-- 5. Audit Log Link (Mobiel) -->
                         <ResponsiveNavLink
                             v-if="user.role === 'Beheerder'"
@@ -313,6 +332,11 @@ const canViewManagementDashboard = user.role === 'Beheerder';
             <main>
                 <slot />
             </main>
+
+            <!-- HVLD Watermerk -->
+            <div class="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
+                <ApplicationLogo class="h-96 w-auto opacity-5" />
+            </div>
         </div>
     </div>
 </template>

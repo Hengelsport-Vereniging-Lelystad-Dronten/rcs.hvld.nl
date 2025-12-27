@@ -23,6 +23,7 @@ use Inertia\Inertia;
 
 // Zorg ervoor dat de controller geïmporteerd is voor gebruik buiten de closures
 use App\Http\Controllers\Beheer\StrafmaatController;
+use App\Http\Controllers\Beheer\ReportsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -81,8 +82,15 @@ Route::middleware(['auth', 'beheerder'])->group(function () {
 
     // PERIODIEKE RAPPORTAGES
     // Routes voor beheerders om wekelijks, maandelijks, kwartaal en custom rapporten in te zien en te downloaden.
+    // NIEUW: Statistieken Dashboard (vervangt de oude index)
+    Route::get('beheer/reports', [ReportsController::class, 'index'])->name('beheer.reports.index');
+    // NIEUW: Detailpagina voor recidivisten
+    Route::get('beheer/reports/recidivist/{vispasnummer}', [ReportsController::class, 'recidivist'])->name('beheer.reports.recidivist');
+    // NIEUW: PDF Download voor recidivisten
+    Route::get('beheer/reports/recidivist/{vispasnummer}/pdf', [ReportsController::class, 'downloadRecidivistPdf'])->name('beheer.reports.recidivist.pdf');
+
     Route::resource('beheer/reports', \App\Http\Controllers\ReportController::class)
-        ->only(['index', 'show', 'destroy'])
+        ->only(['show', 'destroy'])
         ->names('beheer.reports');
     Route::post('/beheer/reports/generate', [\App\Http\Controllers\ReportController::class, 'generate'])->name('beheer.reports.generate');
     Route::get('/beheer/reports/{report}/download', [\App\Http\Controllers\ReportController::class, 'download'])->name('beheer.reports.download');

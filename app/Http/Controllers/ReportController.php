@@ -61,7 +61,7 @@ class ReportController extends Controller
 
         activity()
             ->performedOn($report)
-            ->withExtra(['report_type' => $report->report_type, 'period' => $report->period_start->format('Y-m-d') . ' - ' . $report->period_end->format('Y-m-d')])
+            ->withProperties(['report_type' => $report->report_type, 'period' => $report->period_start->format('Y-m-d') . ' - ' . $report->period_end->format('Y-m-d')])
             ->log('Rapport verwijderd');
 
         $report->delete();
@@ -111,7 +111,7 @@ class ReportController extends Controller
 
         activity()
             ->performedOn($report)
-            ->withExtra(['report_type' => $report->report_type, 'period' => $report->period_start->format('Y-m-d') . ' - ' . $report->period_end->format('Y-m-d')])
+            ->withProperties(['report_type' => $report->report_type, 'period' => $report->period_start->format('Y-m-d') . ' - ' . $report->period_end->format('Y-m-d')])
             ->log('Rapport gegenereerd');
 
         return redirect()->route('beheer.reports.show', $report->id)
