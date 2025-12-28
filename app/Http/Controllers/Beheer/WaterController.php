@@ -41,8 +41,9 @@ class WaterController extends Controller
                 'id' => null,
                 'naam' => '',
                 'beschrijving' => '',
-                'latitude' => null,
-                'longitude' => null,
+                'boundary' => null,
+                'center_lat' => null,
+                'center_lng' => null,
             ],
         ]);
     }
@@ -55,14 +56,24 @@ class WaterController extends Controller
         $validated = $request->validate([
             'naam' => 'required|string|max:255|unique:waters,naam',
             'beschrijving' => 'nullable|string',
+            'boundary' => 'nullable|json',
             // GPS-velden toegevoegd, deze zijn vereist in de frontend
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
+            'center_lat' => 'nullable|numeric',
+            'center_lng' => 'nullable|numeric',
         ]);
 
-        // OPGELOST: Vervangen van ongedefinieerde sanitize_html() door strip_tags().
-        // Dit voorkomt de fatal error.
-        $validated['beschrijving'] = strip_tags($validated['beschrijving'] ?? '');
+        // OPMERKING: We gebruiken hier GEEN strip_tags() meer op de beschrijving.
+        // Dit staat toe dat HTML uit de WYSIWYG-editor wordt opgeslagen in de database.
+
+        // Mapping van frontend center_lat/lng naar database latitude/longitude
+        if (isset($validated['center_lat'])) {
+            $validated['latitude'] = $validated['center_lat'];
+            unset($validated['center_lat']);
+        }
+        if (isset($validated['center_lng'])) {
+            $validated['longitude'] = $validated['center_lng'];
+            unset($validated['center_lng']);
+        }
 
         // Gebruik alleen de gevalideerde data
         $water = Water::create($validated);
@@ -91,6 +102,10 @@ class WaterController extends Controller
         // Zoek het water op basis van de meegegeven ID
         $water = Water::findOrFail($id);
 
+        // Map database latitude/longitude naar frontend center_lat/center_lng
+        $water->center_lat = $water->latitude;
+        $water->center_lng = $water->longitude;
+
         return Inertia::render('Beheer/Waters/CreateEdit', [
             'water' => $water, // Geef het water object mee aan de Vue-component
         ]);
@@ -107,16 +122,26 @@ class WaterController extends Controller
             // Gebruik Rule::unique om de huidige record te negeren
             'naam' => ['required', 'string', 'max:255', Rule::unique('waters', 'naam')->ignore($water->id)],
             'beschrijving' => 'nullable|string',
+            'boundary' => 'nullable|json',
             // GPS-velden toegevoegd
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
+            'center_lat' => 'nullable|numeric',
+            'center_lng' => 'nullable|numeric',
         ]);
 
-        // OPGELOST: Vervangen van ongedefinieerde sanitize_html() door strip_tags().
-        // Dit voorkomt de fatal error.
-        $validated['beschrijving'] = strip_tags($validated['beschrijving'] ?? '');
+        // OPMERKING: We gebruiken hier GEEN strip_tags() meer op de beschrijving.
+        // Dit staat toe dat HTML uit de WYSIWYG-editor wordt opgeslagen in de database.
 
-        $oldData = $water->only(['naam', 'beschrijving', 'latitude', 'longitude']);
+        // Mapping van frontend center_lat/lng naar database latitude/longitude
+        if (isset($validated['center_lat'])) {
+            $validated['latitude'] = $validated['center_lat'];
+            unset($validated['center_lat']);
+        }
+        if (isset($validated['center_lng'])) {
+            $validated['longitude'] = $validated['center_lng'];
+            unset($validated['center_lng']);
+        }
+
+        $oldData = $water->only(['naam', 'beschrijving', 'latitude', 'longitude', 'boundary']);
 
         // Gebruik alleen de gevalideerde data
         $water->update($validated);
