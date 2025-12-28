@@ -18,6 +18,7 @@ use App\Http\Controllers\WaterQuickAddController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KaartController;
+use App\Http\Controllers\UitlegController;
 use App\Http\Controllers\Beheer\AuditLogController;
 use App\Http\Controllers\Beheer\StrafmaatController;
 use App\Http\Controllers\Beheer\ReportsController;
@@ -75,7 +76,7 @@ Route::middleware('auth')->group(function () {
     // Route voor een snelle POST-actie om een nieuw water (locatie) toe te voegen vanuit de controle-flow.
     Route::post('/waters/store-quick', [WaterQuickAddController::class, 'store'])->name('waters.store-quick');
 
-    Route::get('/uitleg/kaart', [KaartController::class, 'index'])->name('uitleg.kaart');
+    Route::get('/uitleg/kaart', [UitlegController::class, 'kaart'])->name('uitleg.kaart');
 });
 
 

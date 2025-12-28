@@ -8,6 +8,7 @@ import InputError from '@/Components/InputError.vue';               // Component
 import InputLabel from '@/Components/InputLabel.vue';               // Component voor het label van invoervelden
 import PrimaryButton from '@/Components/PrimaryButton.vue';         // Component voor de primaire actieknop
 import TextInput from '@/Components/TextInput.vue';                 // Component voor een standaard tekstinvoerveld
+import WysiwygInput from '@/Components/WysiwygInput.vue';           // Component voor WYSIWYG invoer
 import { Head, useForm } from '@inertiajs/vue3';                  // Head voor paginatitel; useForm voor formulierstate
 import { defineProps } from 'vue';                                // Vue functie om props te definiëren
 
@@ -112,13 +113,12 @@ const submit = () => {
                         <!-- Veld: Volledige Omschrijving (Textarea) -->
                         <div class="mb-4">
                             <InputLabel for="omschrijving" value="Volledige Omschrijving" />
-                            <textarea
+                            <!-- WYSIWYG Editor voor rijke tekst opmaak -->
+                            <WysiwygInput
                                 id="omschrijving"
-                                class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                class="mt-1 block w-full"
                                 v-model="form.omschrijving"
-                                required
-                                rows="3"
-                            ></textarea>
+                            />
                             <!-- Toont eventuele validatiefout voor de omschrijving -->
                             <InputError class="mt-2" :message="form.errors.omschrijving" />
                         </div>
