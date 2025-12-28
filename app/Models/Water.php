@@ -24,6 +24,16 @@ class Water extends Model
         'beschrijving',
         'latitude',
         'longitude',
+        'boundary',
+    ];
+
+    /**
+     * De attributen die naar specifieke types moeten worden gecast.
+     */
+    protected $casts = [
+        'boundary' => 'array',
+        'latitude' => 'float',
+        'longitude' => 'float',
     ];
 
     /**
