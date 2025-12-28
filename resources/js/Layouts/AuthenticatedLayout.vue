@@ -121,16 +121,6 @@ const canViewManagementDashboard = user.role === 'Beheerder';
                                     Rapportages
                                 </NavLink>
 
-                                <!-- 5. Audit Log Link (Autorisatie via v-if) -->
-                                <!-- ALLEEN zichtbaar als de gebruiker de rol 'Beheerder' heeft -->
-                                <NavLink
-                                    v-if="user.role === 'Beheerder'"
-                                    :href="route('beheer.auditlog.index')"
-                                    :active="route().current('beheer.auditlog.index')"
-                                >
-                                    Audit Log
-                                </NavLink>
-
                                 <!-- 4. Beheer sectie (Autorisatie via v-if) -->
                                 <!-- ALLEEN zichtbaar als de gebruiker de rol 'Beheerder' heeft -->
                                 <NavLink
@@ -268,13 +258,11 @@ const canViewManagementDashboard = user.role === 'Beheerder';
                             Controle Overzicht
                         </ResponsiveNavLink>
 
-                        <!-- 4. Beheer sectie (Autorisatie - Mobiel) -->
                         <ResponsiveNavLink
-                            v-if="user.role === 'Beheerder'"
-                            :href="route('beheer.index')"
-                            :active="route().current('beheer.index')"
+                            :href="route('uitleg.kaart')"
+                            :active="route().current('uitleg.kaart')"
                         >
-                            Beheer
+                            Waterkaart
                         </ResponsiveNavLink>
 
                         <!-- 5. Rapportages Link (Mobiel) -->
@@ -285,14 +273,13 @@ const canViewManagementDashboard = user.role === 'Beheerder';
                         >
                             Rapportages
                         </ResponsiveNavLink>
-
-                        <!-- 5. Audit Log Link (Mobiel) -->
+                        <!-- 4. Beheer sectie (Autorisatie - Mobiel) -->
                         <ResponsiveNavLink
                             v-if="user.role === 'Beheerder'"
-                            :href="route('beheer.auditlog.index')"
-                            :active="route().current('beheer.auditlog.index')"
+                            :href="route('beheer.index')"
+                            :active="route().current('beheer.index')"
                         >
-                            Audit Log
+                            Beheer
                         </ResponsiveNavLink>
 
                     </div>
