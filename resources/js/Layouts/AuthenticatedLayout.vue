@@ -103,12 +103,12 @@ const canViewManagementDashboard = user.role === 'Beheerder';
                                     Controle Overzicht
                                 </NavLink>
 
-                                <!-- Nieuwe Link naar Waterkaart -->
+                                <!-- Uitleg & Info Sectie -->
                                 <NavLink
-                                    :href="route('uitleg.kaart')"
-                                    :active="route().current('uitleg.kaart')"
+                                    :href="route('uitleg.index')"
+                                    :active="route().current('uitleg.*')"
                                 >
-                                    Waterkaart
+                                    Uitleg & Info
                                 </NavLink>
 
                                 <!-- 5. Rapportages Link (Autorisatie via v-if) -->
@@ -259,10 +259,10 @@ const canViewManagementDashboard = user.role === 'Beheerder';
                         </ResponsiveNavLink>
 
                         <ResponsiveNavLink
-                            :href="route('uitleg.kaart')"
-                            :active="route().current('uitleg.kaart')"
+                            :href="route('uitleg.index')"
+                            :active="route().current('uitleg.*')"
                         >
-                            Waterkaart
+                            Uitleg & Info
                         </ResponsiveNavLink>
 
                         <!-- 5. Rapportages Link (Mobiel) -->
