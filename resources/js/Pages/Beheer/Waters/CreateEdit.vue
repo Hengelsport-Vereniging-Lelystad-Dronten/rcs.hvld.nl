@@ -71,7 +71,7 @@ const initMap = () => {
     // Startpositie: Midden van Nederland of het bestaande centrum van het water
     const startLat = parseFloat(form.center_lat) || 52.1326;
     const startLng = parseFloat(form.center_lng) || 5.2913;
-    const zoomLevel = isEdit && form.center_lat ? 14 : 7;
+    const zoomLevel = isEdit && form.center_lat ? 14 : 9;
 
     map = L.map(mapContainer.value).setView([startLat, startLng], zoomLevel);
 

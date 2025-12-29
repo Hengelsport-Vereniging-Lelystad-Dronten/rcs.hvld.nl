@@ -17,7 +17,7 @@ let map = null;
 
 onMounted(() => {
     // Initialize map centered on Netherlands
-    map = L.map(mapContainer.value).setView([52.1326, 5.2913], 8);
+    map = L.map(mapContainer.value).setView([52.1326, 5.2913], 9);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
