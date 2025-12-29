@@ -15,10 +15,10 @@
 use App\Http\Controllers\ControleRondeController;
 use App\Http\Controllers\OvertredingController;
 use App\Http\Controllers\WaterQuickAddController;
+use App\Http\Controllers\UitlegController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KaartController;
-use App\Http\Controllers\UitlegController;
 use App\Http\Controllers\Beheer\AuditLogController;
 use App\Http\Controllers\Beheer\StrafmaatController;
 use App\Http\Controllers\Beheer\ReportsController;
@@ -76,7 +76,12 @@ Route::middleware('auth')->group(function () {
     // Route voor een snelle POST-actie om een nieuw water (locatie) toe te voegen vanuit de controle-flow.
     Route::post('/waters/store-quick', [WaterQuickAddController::class, 'store'])->name('waters.store-quick');
 
+    // UITLEG SECTIE
+    Route::get('/uitleg', [UitlegController::class, 'index'])->name('uitleg.index');
     Route::get('/uitleg/kaart', [UitlegController::class, 'kaart'])->name('uitleg.kaart');
+    Route::get('/uitleg/faq', [UitlegController::class, 'faq'])->name('uitleg.faq');
+    Route::get('/uitleg/overtredingen', [UitlegController::class, 'overtredingen'])->name('uitleg.overtredingen');
+    Route::get('/uitleg/handleidingen', [UitlegController::class, 'handleidingen'])->name('uitleg.handleidingen');
 });
 
 
@@ -134,6 +139,10 @@ Route::middleware(['auth', 'beheerder'])->group(function () {
      */
     Route::post('beheer/strafmaten/order', [StrafmaatController::class, 'updateOrder'])
         ->name('beheer.strafmaten.updateOrder');
+
+    // FAQ BEHEER (CRUD)
+    Route::resource('beheer/faqs', App\Http\Controllers\Beheer\FaqController::class)
+        ->names('beheer.faqs');
 
     // AUDIT LOG
     // Route voor het weergeven van het audit log.
