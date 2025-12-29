@@ -26,24 +26,20 @@ onMounted(() => {
     const bounds = L.latLngBounds();
     let hasLayers = false;
 
-    const defaultStyle = {
-        color: '#2563eb',
-        weight: 2,
-        fillOpacity: 0.4
-    };
-
-    const highlightStyle = {
-        color: '#1e3a8a', // Donkerblauw
-        weight: 3,
-        fillOpacity: 0.6
-    };
-
     props.waters.forEach(water => {
         if (water.boundary) {
+            const isVerboden = !!water.is_verboden;
+            const waterStyle = {
+                color: isVerboden ? '#dc2626' : '#2563eb', // Rood-600 of Blauw-600
+                fillColor: isVerboden ? '#ef4444' : '#3b82f6', // Rood-500 of Blauw-500
+                weight: 2,
+                fillOpacity: 0.4
+            };
+
             try {
                 const geoJson = typeof water.boundary === 'string' ? JSON.parse(water.boundary) : water.boundary;
                 const layer = L.geoJSON(geoJson, {
-                    style: defaultStyle
+                    style: waterStyle
                 }).addTo(map);
 
                 layer.bindPopup(`
@@ -55,12 +51,16 @@ onMounted(() => {
 
                 // Highlight bij selectie (popup open)
                 layer.on('popupopen', () => {
-                    layer.setStyle(highlightStyle);
+                    layer.setStyle({
+                        weight: 3,
+                        fillOpacity: 0.6,
+                        color: isVerboden ? '#991b1b' : '#1e3a8a' // Donkerder rood of blauw
+                    });
                     layer.bringToFront();
                 });
 
                 layer.on('popupclose', () => {
-                    layer.setStyle(defaultStyle);
+                    layer.setStyle(waterStyle);
                 });
 
                 bounds.extend(layer.getBounds());
@@ -102,6 +102,18 @@ onMounted(() => {
                             Hieronder ziet u een overzicht van alle geregistreerde wateren en hun grenzen.
                             Klik op een gebied voor meer informatie.
                         </p>
+
+                        <!-- Legenda -->
+                        <div class="flex items-center space-x-6 mb-4 text-sm">
+                            <div class="flex items-center">
+                                <span class="w-4 h-4 inline-block bg-blue-500 mr-2 border border-blue-700 opacity-60"></span>
+                                <span>Toegestaan Viswater</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-4 h-4 inline-block bg-red-500 mr-2 border border-red-700 opacity-60"></span>
+                                <span>Verboden Water (Handhaving)</span>
+                            </div>
+                        </div>
                         
                         <div ref="mapContainer" class="w-full h-[600px] rounded-lg border border-gray-300 shadow-inner z-0"></div>
                     </div>
