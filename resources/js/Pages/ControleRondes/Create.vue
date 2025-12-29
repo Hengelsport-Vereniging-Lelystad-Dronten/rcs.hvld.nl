@@ -46,7 +46,8 @@ onMounted(() => {
                 const geoJson = typeof water.boundary === 'string' ? JSON.parse(water.boundary) : water.boundary;
                 layer = L.geoJSON(geoJson, {
                     style: {
-                        color: '#3b82f6', // Standaard blauw
+                        color: water.is_verboden ? '#dc2626' : '#3b82f6', // Rood indien verboden, anders blauw
+                        fillColor: water.is_verboden ? '#ef4444' : '#3b82f6',
                         weight: 2,
                         fillOpacity: 0.2
                     }
@@ -92,10 +93,14 @@ watch(() => form.water_id, (newId) => {
     Object.keys(waterLayers).forEach(id => {
         const layer = waterLayers[id];
         const isSelected = id == newId;
+        const water = props.waters.find(w => w.id == id);
+        const isVerboden = water ? !!water.is_verboden : false;
 
         if (layer instanceof L.Path) { // Is Polygoon
             layer.setStyle({
-                color: isSelected ? '#ef4444' : '#3b82f6', // Rood indien geselecteerd
+                // Selectie = Oranje, Verboden = Rood, Standaard = Blauw
+                color: isSelected ? '#f97316' : (isVerboden ? '#dc2626' : '#3b82f6'),
+                fillColor: isSelected ? '#fb923c' : (isVerboden ? '#ef4444' : '#3b82f6'),
                 fillOpacity: isSelected ? 0.5 : 0.2,
                 weight: isSelected ? 3 : 2
             });

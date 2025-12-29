@@ -25,6 +25,8 @@ class Water extends Model
         'latitude',
         'longitude',
         'boundary',
+        'is_verboden',
+        'default_overtreding_type_id',
     ];
 
     /**
@@ -34,6 +36,7 @@ class Water extends Model
         'boundary' => 'array',
         'latitude' => 'float',
         'longitude' => 'float',
+        'is_verboden' => 'boolean',
     ];
 
     /**
@@ -42,5 +45,13 @@ class Water extends Model
     public function controleRondes()
     {
         return $this->hasMany(ControleRonde::class);
+    }
+
+    /**
+     * Relatie: Een Water kan een standaard overtredingstype hebben (bijv. voor verboden wateren).
+     */
+    public function defaultOvertredingType()
+    {
+        return $this->belongsTo(OvertredingType::class, 'default_overtreding_type_id');
     }
 }

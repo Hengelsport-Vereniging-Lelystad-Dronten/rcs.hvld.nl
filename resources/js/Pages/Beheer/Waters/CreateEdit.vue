@@ -9,7 +9,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import WysiwygInput from '@/Components/WysiwygInput.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -17,6 +17,10 @@ const props = defineProps({
     water: {
         type: Object,
         default: null,
+    },
+    overtredingTypes: {
+        type: Array,
+        default: () => [],
     },
 });
 
@@ -30,6 +34,8 @@ const form = useForm({
     boundary: props.water ? props.water.boundary : null,
     center_lat: props.water ? props.water.center_lat : null,
     center_lng: props.water ? props.water.center_lng : null,
+    is_verboden: props.water ? !!props.water.is_verboden : false,
+    default_overtreding_type_id: props.water ? props.water.default_overtreding_type_id : null,
 });
 
 // Refs voor kaart elementen
@@ -149,8 +155,12 @@ const createPolygon = (latlngs) => {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
 
+    // Bepaal kleur op basis van status
+    const color = form.is_verboden ? '#dc2626' : '#2563eb'; // Rood of Blauw
+    const fillColor = form.is_verboden ? '#ef4444' : '#3b82f6';
+
     // Maak de polygoon laag
-    polygonLayer = L.polygon(latlngs, { color: '#2563eb', weight: 2, fillColor: '#3b82f6', fillOpacity: 0.3 }).addTo(map);
+    polygonLayer = L.polygon(latlngs, { color: color, weight: 2, fillColor: fillColor, fillOpacity: 0.3 }).addTo(map);
     hasPolygon.value = true;
 
     // Maak sleepbare handgrepen op elk hoekpunt voor bewerking
@@ -169,6 +179,15 @@ const createPolygon = (latlngs) => {
 
     updateForm();
 };
+
+// Watcher: Pas de kleur van de polygoon direct aan als de checkbox verandert
+watch(() => form.is_verboden, (newVal) => {
+    if (polygonLayer) {
+        const color = newVal ? '#dc2626' : '#2563eb';
+        const fillColor = newVal ? '#ef4444' : '#3b82f6';
+        polygonLayer.setStyle({ color, fillColor });
+    }
+});
 
 // Reset de tekening zodat de gebruiker opnieuw kan beginnen
 const resetPolygon = () => {
@@ -241,6 +260,28 @@ onMounted(() => {
                                     <!-- Gebruik van de nieuwe WYSIWYG editor -->
                                     <WysiwygInput id="beschrijving" class="mt-1 block w-full" v-model="form.beschrijving" />
                                     <InputError class="mt-2" :message="form.errors.beschrijving" />
+                                </div>
+
+                                <!-- Verboden Water Instellingen -->
+                                <div class="p-4 bg-red-50 border border-red-100 rounded-lg">
+                                    <label class="flex items-center cursor-pointer">
+                                        <input type="checkbox" v-model="form.is_verboden" class="rounded border-gray-300 text-red-600 shadow-sm focus:ring-red-500">
+                                        <span class="ml-2 text-sm font-bold text-red-700">Dit is een Verboden Water</span>
+                                    </label>
+                                    <p class="text-xs text-red-600 mt-1 ml-6">
+                                        Verboden wateren worden rood gemarkeerd op de kaart en zijn bedoeld voor handhaving bij illegale visserij.
+                                    </p>
+
+                                    <div v-if="form.is_verboden" class="mt-4 ml-6">
+                                        <InputLabel for="default_overtreding_type_id" value="Standaard Overtreding" class="text-red-800 text-xs" />
+                                        <select id="default_overtreding_type_id" v-model="form.default_overtreding_type_id" class="mt-1 block w-full border-red-300 focus:border-red-500 focus:ring-red-500 rounded-md shadow-sm text-sm">
+                                            <option :value="null">-- Geen standaard --</option>
+                                            <option v-for="type in overtredingTypes" :key="type.id" :value="type.id">
+                                                {{ type.code }} - {{ type.omschrijving }}
+                                            </option>
+                                        </select>
+                                        <InputError class="mt-2" :message="form.errors.default_overtreding_type_id" />
+                                    </div>
                                 </div>
 
                                 <div class="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg border border-gray-100">

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Beheer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Water;
+use App\Models\OvertredingType;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Validation\Rule; // Nodig voor unique-validatie in update
@@ -44,7 +45,11 @@ class WaterController extends Controller
                 'boundary' => null,
                 'center_lat' => null,
                 'center_lng' => null,
+                'is_verboden' => false,
+                'default_overtreding_type_id' => null,
             ],
+            // Geef lijst met overtredingstypes mee voor de dropdown
+            'overtredingTypes' => OvertredingType::orderBy('code')->get(),
         ]);
     }
 
@@ -60,6 +65,8 @@ class WaterController extends Controller
             // GPS-velden toegevoegd, deze zijn vereist in de frontend
             'center_lat' => 'nullable|numeric',
             'center_lng' => 'nullable|numeric',
+            'is_verboden' => 'boolean',
+            'default_overtreding_type_id' => 'nullable|exists:overtreding_types,id',
         ]);
 
         // OPMERKING: We gebruiken hier GEEN strip_tags() meer op de beschrijving.
@@ -108,6 +115,7 @@ class WaterController extends Controller
 
         return Inertia::render('Beheer/Waters/CreateEdit', [
             'water' => $water, // Geef het water object mee aan de Vue-component
+            'overtredingTypes' => OvertredingType::orderBy('code')->get(),
         ]);
     }
 
@@ -126,6 +134,8 @@ class WaterController extends Controller
             // GPS-velden toegevoegd
             'center_lat' => 'nullable|numeric',
             'center_lng' => 'nullable|numeric',
+            'is_verboden' => 'boolean',
+            'default_overtreding_type_id' => 'nullable|exists:overtreding_types,id',
         ]);
 
         // OPMERKING: We gebruiken hier GEEN strip_tags() meer op de beschrijving.

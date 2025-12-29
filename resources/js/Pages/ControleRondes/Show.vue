@@ -129,7 +129,10 @@ const checkRecidive = async (vispasnummer, overtredingTypeId) => {
 // ====================================================================
 // FORMULIER LOGICA (useForm)
 // ====================================================================
-const initialTypeId = props.overtredingTypes.length > 0 ? props.overtredingTypes[0].id : '';
+// Bepaal het initiële overtredingstype:
+// 1. Als het water een standaard overtreding heeft (bijv. verboden water), gebruik die.
+// 2. Anders pak de eerste uit de lijst.
+const initialTypeId = props.ronde.water?.default_overtreding_type_id || (props.overtredingTypes.length > 0 ? props.overtredingTypes[0].id : '');
 
 // Find the initial strafmaat based on lookupProposedMaatregel and then get its ID
 const initialMaatregelOmschrijving = lookupProposedMaatregel(initialTypeId, false);
@@ -738,8 +741,8 @@ const annuleerRonde = () => {
 
                                 :class="{ 'opacity-25': overtredingForm.processing }" 
 
-                                :disabled="overtredingForm.processing || isRecidiveCheckLoading || overtredingForm.overtreding_type_id === initialTypeId && overtredingTypes[0].code === '00'"
-
+                                :disabled="overtredingForm.processing || isRecidiveCheckLoading || (overtredingTypes.length > 0 && overtredingForm.overtreding_type_id === overtredingTypes[0].id)"
+ 
                                 class="w-full justify-center bg-red-600 hover:bg-red-700 active:bg-red-800"
 
                             >
