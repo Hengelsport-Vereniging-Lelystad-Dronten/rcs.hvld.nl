@@ -26,16 +26,24 @@ onMounted(() => {
     const bounds = L.latLngBounds();
     let hasLayers = false;
 
+    const defaultStyle = {
+        color: '#2563eb',
+        weight: 2,
+        fillOpacity: 0.4
+    };
+
+    const highlightStyle = {
+        color: '#1e3a8a', // Donkerblauw
+        weight: 3,
+        fillOpacity: 0.6
+    };
+
     props.waters.forEach(water => {
         if (water.boundary) {
             try {
                 const geoJson = typeof water.boundary === 'string' ? JSON.parse(water.boundary) : water.boundary;
                 const layer = L.geoJSON(geoJson, {
-                    style: {
-                        color: '#2563eb',
-                        weight: 2,
-                        fillOpacity: 0.4
-                    }
+                    style: defaultStyle
                 }).addTo(map);
 
                 layer.bindPopup(`
@@ -44,6 +52,16 @@ onMounted(() => {
                         <div class="text-sm text-gray-600">${water.beschrijving || 'Geen beschrijving.'}</div>
                     </div>
                 `);
+
+                // Highlight bij selectie (popup open)
+                layer.on('popupopen', () => {
+                    layer.setStyle(highlightStyle);
+                    layer.bringToFront();
+                });
+
+                layer.on('popupclose', () => {
+                    layer.setStyle(defaultStyle);
+                });
 
                 bounds.extend(layer.getBounds());
                 hasLayers = true;
