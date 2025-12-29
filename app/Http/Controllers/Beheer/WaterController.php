@@ -56,7 +56,7 @@ class WaterController extends Controller
         $validated = $request->validate([
             'naam' => 'required|string|max:255|unique:waters,naam',
             'beschrijving' => 'nullable|string',
-            'boundary' => 'nullable|json',
+            'boundary' => 'nullable|json', // Accepteert zowel Polygon als MultiPolygon GeoJSON
             // GPS-velden toegevoegd, deze zijn vereist in de frontend
             'center_lat' => 'nullable|numeric',
             'center_lng' => 'nullable|numeric',
@@ -122,7 +122,7 @@ class WaterController extends Controller
             // Gebruik Rule::unique om de huidige record te negeren
             'naam' => ['required', 'string', 'max:255', Rule::unique('waters', 'naam')->ignore($water->id)],
             'beschrijving' => 'nullable|string',
-            'boundary' => 'nullable|json',
+            'boundary' => 'nullable|json', // Accepteert zowel Polygon als MultiPolygon GeoJSON
             // GPS-velden toegevoegd
             'center_lat' => 'nullable|numeric',
             'center_lng' => 'nullable|numeric',
