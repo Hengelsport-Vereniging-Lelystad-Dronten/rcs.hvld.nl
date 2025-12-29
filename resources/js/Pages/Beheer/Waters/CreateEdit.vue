@@ -193,33 +193,11 @@ const finishPolygon = () => {
     tempLine = null;
 };
 
-// Maakt de definitieve, bewerkbare polygoon aan
-const createPolygon = (latlngs) => {
-    // Verwijder oude markers
-    markers.forEach(m => map.removeLayer(m));
-    markers = [];
-
-    // Bepaal kleur op basis van status
-    const color = form.is_verboden ? '#dc2626' : '#2563eb'; // Rood of Blauw
-    const fillColor = form.is_verboden ? '#ef4444' : '#3b82f6';
-
-    // Maak de polygoon laag
-    polygonLayer = L.polygon(latlngs, { color: color, weight: 2, fillColor: fillColor, fillOpacity: 0.3 }).addTo(map);
-    hasPolygon.value = true;
-
-    // Maak sleepbare handgrepen op elk hoekpunt voor bewerking
-    latlngs.forEach((latlng, index) => {
-        const marker = L.marker(latlng, { icon: handleIcon, draggable: true }).addTo(map);
-        
-        marker.on('drag', (e) => {
-            const newLatLngs = polygonLayer.getLatLngs()[0];
-            newLatLngs[index] = e.latlng;
-            polygonLayer.setLatLngs([newLatLngs]); // Update vorm
-            updateForm();
-        });
 // Voegt een bewerkbare polygoon toe aan de kaart (en drawnItems)
 const addEditablePolygon = (latlngs) => {
-    const layer = L.polygon(latlngs, { color: '#2563eb', weight: 2, fillColor: '#3b82f6', fillOpacity: 0.3 }).addTo(drawnItems);
+    const color = form.is_verboden ? '#dc2626' : '#2563eb';
+    const fillColor = form.is_verboden ? '#ef4444' : '#3b82f6';
+    const layer = L.polygon(latlngs, { color: color, weight: 2, fillColor: fillColor, fillOpacity: 0.3 }).addTo(drawnItems);
     
     // Voeg popup toe om vlak te verwijderen
     const popupContent = document.createElement('div');
@@ -304,17 +282,15 @@ const removeEditablePolygon = (layer) => {
 
 // Watcher: Pas de kleur van de polygoon direct aan als de checkbox verandert
 watch(() => form.is_verboden, (newVal) => {
-    if (polygonLayer) {
+    if (drawnItems) {
         const color = newVal ? '#dc2626' : '#2563eb';
         const fillColor = newVal ? '#ef4444' : '#3b82f6';
-        polygonLayer.setStyle({ color, fillColor });
+        drawnItems.eachLayer(layer => {
+            layer.setStyle({ color, fillColor });
+        });
     }
 });
 
-// Reset de tekening zodat de gebruiker opnieuw kan beginnen
-const resetPolygon = () => {
-    if (polygonLayer) map.removeLayer(polygonLayer);
-    markers.forEach(m => map.removeLayer(m));
 // Reset de volledige tekening
 const resetMap = () => {
     map.closePopup();
