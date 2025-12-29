@@ -41,11 +41,12 @@ const form = useForm({
 // Refs voor kaart elementen
 const mapContainer = ref(null);
 const hasPolygon = ref(!!props.water?.boundary);
+const isDrawingHole = ref(false);
 
 // Leaflet variabelen (niet reactief nodig omdat Leaflet zijn eigen state beheert)
 let map = null;
-let polygonLayer = null;
-let markers = [];
+let drawnItems = null; // FeatureGroup voor alle polygonen
+let tempMarkers = []; // Markers tijdens het tekenen
 let tempPoints = [];
 let tempLine = null;
 
@@ -60,8 +61,8 @@ const handleIcon = L.divIcon({
 
 const firstPointIcon = L.divIcon({
     className: 'bg-red-600 rounded-full border-2 border-white shadow-sm cursor-pointer animate-pulse',
-    iconSize: [14, 14],
-    iconAnchor: [7, 7],
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
 });
 
 const tempPointIcon = L.divIcon({
@@ -85,18 +86,23 @@ const initMap = () => {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
+    // FeatureGroup voor opgeslagen polygonen
+    drawnItems = new L.FeatureGroup().addTo(map);
+
     // Laad bestaande grenzen (polygoon) indien aanwezig
     if (form.boundary) {
         try {
             const geoJson = typeof form.boundary === 'string' ? JSON.parse(form.boundary) : form.boundary;
             const layer = L.geoJSON(geoJson);
-            const layers = layer.getLayers();
             
-            if (layers.length > 0) {
-                // Haal coördinaten op en maak de bewerkbare polygoon aan
-                const latlngs = layers[0].getLatLngs()[0];
-                createPolygon(latlngs);
-                map.fitBounds(polygonLayer.getBounds());
+            layer.eachLayer((l) => {
+                if (l instanceof L.Polygon) {
+                    addEditablePolygon(l.getLatLngs());
+                }
+            });
+
+            if (drawnItems.getLayers().length > 0) {
+                map.fitBounds(drawnItems.getBounds());
             }
         } catch (e) {
             console.error("Error parsing boundary GeoJSON", e);
@@ -105,7 +111,6 @@ const initMap = () => {
 
     // Click handler: Voeg punten toe als er nog geen polygoon is
     map.on('click', (e) => {
-        if (hasPolygon.value) return; 
         addTempPoint(e.latlng);
     });
 };
@@ -117,16 +122,19 @@ const addTempPoint = (latlng) => {
     const isFirst = tempPoints.length === 1;
     const icon = isFirst ? firstPointIcon : tempPointIcon;
     
-    const marker = L.marker(latlng, { icon: icon }).addTo(map);
-    markers.push(marker);
+    const marker = L.marker(latlng, { icon: icon, zIndexOffset: 1000 }).addTo(map);
+    tempMarkers.push(marker);
 
-    // Als op het eerste punt wordt geklikt, sluit de polygoon
+    // Voorkom dat klikken op de marker doorgaat naar de kaart of onderliggende polygonen en sluit indien startpunt
+    marker.on('click', (e) => {
+        L.DomEvent.stopPropagation(e.originalEvent || e);
+        if (isFirst && tempPoints.length >= 3) {
+            finishPolygon();
+        }
+    });
+
     if (isFirst) {
-        marker.on('click', () => {
-            if (tempPoints.length >= 3) {
-                finishPolygon();
-            }
-        });
+        marker.bindTooltip("Klik om te sluiten", { direction: 'top', offset: [0, -10] });
     }
 
     drawTempLines();
@@ -142,8 +150,44 @@ const drawTempLines = () => {
 
 // Rond het tekenproces af en converteert punten naar een polygoon
 const finishPolygon = () => {
-    createPolygon(tempPoints);
+    if (isDrawingHole.value) {
+        // Gat toevoegen aan bestaand polygon
+        let parentLayer = null;
+        const holeLatlngs = [...tempPoints];
+
+        drawnItems.eachLayer(layer => {
+            // Haal outer ring op
+            let latlngs = layer.getLatLngs();
+            // Normaliseer naar array van rings als het een simpele polygon is
+            if (latlngs.length > 0 && latlngs[0] instanceof L.LatLng) {
+                latlngs = [latlngs];
+            }
+            
+            // Check of eerste punt van gat in outer ring valt
+            if (isPointInPolygon(holeLatlngs[0], latlngs[0])) {
+                parentLayer = layer;
+            }
+        });
+
+        if (parentLayer) {
+            let latlngs = parentLayer.getLatLngs();
+            if (latlngs.length > 0 && latlngs[0] instanceof L.LatLng) {
+                latlngs = [latlngs];
+            }
+            latlngs.push(holeLatlngs);
+            parentLayer.setLatLngs(latlngs);
+            rebuildHandles(parentLayer);
+            updateForm();
+        } else {
+            alert("Het getekende gat valt niet binnen een bestaand watervlak. Teken het gat volledig binnen een bestaand vlak.");
+        }
+    } else {
+        addEditablePolygon(tempPoints);
+    }
+    
     // Opruimen tijdelijke teken-state
+    tempMarkers.forEach(m => map.removeLayer(m));
+    tempMarkers = [];
     tempPoints = [];
     if (tempLine) map.removeLayer(tempLine);
     tempLine = null;
@@ -173,10 +217,88 @@ const createPolygon = (latlngs) => {
             polygonLayer.setLatLngs([newLatLngs]); // Update vorm
             updateForm();
         });
+// Voegt een bewerkbare polygoon toe aan de kaart (en drawnItems)
+const addEditablePolygon = (latlngs) => {
+    const layer = L.polygon(latlngs, { color: '#2563eb', weight: 2, fillColor: '#3b82f6', fillOpacity: 0.3 }).addTo(drawnItems);
+    
+    // Voeg popup toe om vlak te verwijderen
+    const popupContent = document.createElement('div');
+    const btn = document.createElement('button');
+    btn.innerText = 'Verwijder dit vlak';
+    btn.className = 'text-red-600 font-bold hover:underline text-sm';
+    btn.type = 'button';
+    btn.onclick = () => {
+        removeEditablePolygon(layer);
+        map.closePopup();
+    };
+    popupContent.appendChild(btn);
 
-        markers.push(marker);
+    layer.on('click', (e) => {
+        if (isDrawingHole.value) {
+            addTempPoint(e.latlng);
+        } else {
+            L.popup().setLatLng(e.latlng).setContent(popupContent).openOn(map);
+        }
     });
 
+    rebuildHandles(layer);
+    updateForm();
+};
+
+// Herbouwt de sleepbare handles voor een polygon (nodig na wijziging geometrie/gaten)
+const rebuildHandles = (layer) => {
+    // Verwijder oude handles
+    if (layer._handles) {
+        layer._handles.forEach(h => map.removeLayer(h));
+    }
+    layer._handles = [];
+
+    let rings = layer.getLatLngs();
+    // Normaliseer naar array van rings
+    if (rings.length > 0 && rings[0] instanceof L.LatLng) {
+        rings = [rings];
+    }
+
+    rings.forEach((ring, ringIndex) => {
+        ring.forEach((latlng, pointIndex) => {
+            const marker = L.marker(latlng, { icon: handleIcon, draggable: true }).addTo(map);
+            
+            marker.on('drag', (e) => {
+                let currentRings = layer.getLatLngs();
+                if (currentRings.length > 0 && currentRings[0] instanceof L.LatLng) {
+                    currentRings = [currentRings];
+                }
+                currentRings[ringIndex][pointIndex] = e.latlng;
+                layer.setLatLngs(currentRings);
+                updateForm();
+            });
+
+            layer._handles.push(marker);
+        });
+    });
+};
+
+// Helper: Ray-casting algoritme om te checken of punt in polygon ligt
+const isPointInPolygon = (point, vs) => {
+    // point = {lat, lng}, vs = [{lat, lng}, ...]
+    let x = point.lat, y = point.lng;
+    let inside = false;
+    for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+        let xi = vs[i].lat, yi = vs[i].lng;
+        let xj = vs[j].lat, yj = vs[j].lng;
+        let intersect = ((yi > y) != (yj > y))
+            && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+    return inside;
+};
+
+// Verwijder een specifiek vlak
+const removeEditablePolygon = (layer) => {
+    if (layer._handles) {
+        layer._handles.forEach(h => map.removeLayer(h));
+    }
+    drawnItems.removeLayer(layer);
     updateForm();
 };
 
@@ -193,27 +315,47 @@ watch(() => form.is_verboden, (newVal) => {
 const resetPolygon = () => {
     if (polygonLayer) map.removeLayer(polygonLayer);
     markers.forEach(m => map.removeLayer(m));
+// Reset de volledige tekening
+const resetMap = () => {
+    map.closePopup();
+    drawnItems.eachLayer(layer => removeEditablePolygon(layer));
+    
+    tempMarkers.forEach(m => map.removeLayer(m));
     if (tempLine) map.removeLayer(tempLine);
     
-    polygonLayer = null;
-    markers = [];
+    tempMarkers = [];
     tempPoints = [];
     tempLine = null;
-    hasPolygon.value = false;
     
-    form.boundary = null;
+    updateForm();
 };
 
 // Update de formulierdata met de huidige geometrie en centrum
 const updateForm = () => {
-    if (!polygonLayer) return;
+    const layers = drawnItems.getLayers();
+    hasPolygon.value = layers.length > 0;
+
+    if (layers.length === 0) {
+        form.boundary = null;
+        return;
+    }
     
-    // Sla geometrie op als GeoJSON
-    const geoJson = polygonLayer.toGeoJSON();
-    form.boundary = JSON.stringify(geoJson.geometry);
+    // Sla geometrie op als GeoJSON (Polygon of MultiPolygon)
+    const geoJson = drawnItems.toGeoJSON();
+    // drawnItems is een FeatureGroup, toGeoJSON geeft een FeatureCollection.
+    // We willen de geometrie van de features samenvoegen.
+    if (layers.length === 1) {
+        form.boundary = JSON.stringify(geoJson.features[0].geometry);
+    } else {
+        const coordinates = geoJson.features.map(f => f.geometry.coordinates);
+        form.boundary = JSON.stringify({
+            type: 'MultiPolygon',
+            coordinates: coordinates
+        });
+    }
     
     // Bereken en sla het centrum op (voor markers/zoom)
-    const center = polygonLayer.getBounds().getCenter();
+    const center = drawnItems.getBounds().getCenter();
     form.center_lat = center.lat.toFixed(6);
     form.center_lng = center.lng.toFixed(6);
 };
@@ -303,17 +445,27 @@ onMounted(() => {
                             <!-- Right Column: Map -->
                             <div>
                                 <div class="flex justify-between items-end mb-2">
-                                    <InputLabel value="Intekenen op Kaart" />
-                                    <button v-if="hasPolygon" type="button" @click="resetPolygon" class="text-xs text-red-600 hover:text-red-800 underline">
-                                        Reset Tekening
-                                    </button>
+                                    <InputLabel value="Intekenen op Kaart" class="mb-0" />
+                                    <div class="flex space-x-4">
+                                        <label class="inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" v-model="isDrawingHole" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                                            <span class="ml-2 text-xs font-bold text-gray-700">
+                                                {{ isDrawingHole ? 'Gat Tekenen' : 'Vlak Tekenen' }}
+                                            </span>
+                                        </label>
+                                        <button v-if="hasPolygon" type="button" @click="resetMap" class="text-xs text-red-600 hover:text-red-800 underline">
+                                            Alles Wissen
+                                        </button>
+                                    </div>
                                 </div>
                                 
                                 <div class="text-sm text-gray-600 mb-3 bg-blue-50 p-3 rounded border border-blue-100">
-                                    <ul class="list-disc pl-4 space-y-1">
-                                        <li v-if="!hasPolygon">Klik op de kaart om hoekpunten te plaatsen.</li>
-                                        <li v-if="!hasPolygon">Klik op het <strong class="text-red-600">rode startpunt</strong> om het vlak te sluiten.</li>
+                                    <ul class="list-disc pl-4 space-y-1 text-xs">
+                                        <li v-if="!isDrawingHole">Klik op de kaart om hoekpunten te plaatsen voor een <strong>nieuw vlak</strong>.</li>
+                                        <li v-if="isDrawingHole">Klik op de kaart om hoekpunten te plaatsen voor een <strong>gat</strong> (binnen een bestaand vlak).</li>
+                                        <li>Klik op het <strong class="text-red-600">rode startpunt</strong> om de vorm te sluiten.</li>
                                         <li v-if="hasPolygon">Sleep de <strong class="text-orange-500">oranje punten</strong> om de vorm aan te passen.</li>
+                                        <li v-if="hasPolygon">Klik op een vlak om deze te verwijderen.</li>
                                     </ul>
                                 </div>
 
