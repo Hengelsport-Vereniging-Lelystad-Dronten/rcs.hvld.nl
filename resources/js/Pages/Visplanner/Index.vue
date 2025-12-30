@@ -131,13 +131,11 @@ onMounted(() => {
                     <ApplicationLogo class="block h-9 w-auto fill-current text-gray-800 mr-3" />
                     <div>
                         <h1 class="text-lg font-bold text-gray-900 leading-tight">HVLD Visplanner</h1>
-                        <p class="text-xs text-gray-500 hidden sm:block">Officiële waterkaart & regelgeving</p>
+                        <p class="text-xs text-gray-500 hidden sm:block">HVLD waterkaart & regelgeving</p>
                     </div>
                 </div>
                 
                 <div class="text-xs text-gray-500 text-right">
-                    <span class="hidden sm:inline">Legenda & Info</span>
-                    <span class="sm:hidden">ℹ️</span>
                 </div>
             </div>
         </header>
