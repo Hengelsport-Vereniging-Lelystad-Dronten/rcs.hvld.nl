@@ -99,7 +99,7 @@ onMounted(() => {
                     }
                     selectedLayer = layer;
                     layer.setStyle({
-                        weight: 5,
+                        weight: 3,
                         fillOpacity: 0.6
                     });
                 });
