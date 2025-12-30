@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Beheer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Water;
+use App\Models\Nachtviszone;
 use App\Models\OvertredingType;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -47,6 +48,7 @@ class WaterController extends Controller
                 'center_lng' => null,
                 'is_verboden' => false,
                 'default_overtreding_type_id' => null,
+                'nachtviszones' => [],
             ],
             // Geef lijst met overtredingstypes mee voor de dropdown
             'overtredingTypes' => OvertredingType::orderBy('code')->get(),
@@ -67,6 +69,7 @@ class WaterController extends Controller
             'center_lng' => 'nullable|numeric',
             'is_verboden' => 'boolean',
             'default_overtreding_type_id' => 'nullable|exists:overtreding_types,id',
+            'nachtviszones' => 'nullable|array',
         ]);
 
         // OPMERKING: We gebruiken hier GEEN strip_tags() meer op de beschrijving.
@@ -84,6 +87,13 @@ class WaterController extends Controller
 
         // Gebruik alleen de gevalideerde data
         $water = Water::create($validated);
+
+        // Sla nachtviszones op indien aanwezig
+        if (!empty($validated['nachtviszones'])) {
+            foreach ($validated['nachtviszones'] as $zoneGeoJson) {
+                Nachtviszone::create(['water_id' => $water->id, 'boundary' => $zoneGeoJson]);
+            }
+        }
 
         activity()
             ->performedOn($water)
@@ -113,6 +123,9 @@ class WaterController extends Controller
         $water->center_lat = $water->latitude;
         $water->center_lng = $water->longitude;
 
+        // Laad de nachtviszones (handmatig ophalen omdat we de Water model relatie niet kunnen garanderen in deze context)
+        $water->nachtviszones = Nachtviszone::where('water_id', $water->id)->get();
+
         return Inertia::render('Beheer/Waters/CreateEdit', [
             'water' => $water, // Geef het water object mee aan de Vue-component
             'overtredingTypes' => OvertredingType::orderBy('code')->get(),
@@ -136,6 +149,7 @@ class WaterController extends Controller
             'center_lng' => 'nullable|numeric',
             'is_verboden' => 'boolean',
             'default_overtreding_type_id' => 'nullable|exists:overtreding_types,id',
+            'nachtviszones' => 'nullable|array',
         ]);
 
         // OPMERKING: We gebruiken hier GEEN strip_tags() meer op de beschrijving.
@@ -156,6 +170,14 @@ class WaterController extends Controller
         // Gebruik alleen de gevalideerde data
         $water->update($validated);
 
+        // Update nachtviszones: Verwijder oude en maak nieuwe aan (simpele sync strategie voor geometrie)
+        Nachtviszone::where('water_id', $water->id)->delete();
+        if (!empty($validated['nachtviszones'])) {
+            foreach ($validated['nachtviszones'] as $zoneGeoJson) {
+                Nachtviszone::create(['water_id' => $water->id, 'boundary' => $zoneGeoJson]);
+            }
+        }
+
         activity()
             ->performedOn($water)
             ->withProperties(['old' => $oldData, 'new' => $validated])
@@ -170,9 +192,8 @@ class WaterController extends Controller
      */
     public function destroy(string $id)
     {
-        $water = Water::findOrFail($id); // Eerst ophalen
-        $water_naam = $water->naam; // Naam vastleggen voor de flash message
-        
+        $water = Water::findOrFail($id);
+
         activity()
             ->performedOn($water)
             ->log('Water verwijderd');
@@ -180,6 +201,6 @@ class WaterController extends Controller
         $water->delete();
 
         return redirect()->route('beheer.waters.index')
-            ->with('message', 'Water "' . $water_naam . '" succesvol verwijderd.');
+            ->with('message', 'Water "' . $water->naam . '" succesvol verwijderd.');
     }
 }
