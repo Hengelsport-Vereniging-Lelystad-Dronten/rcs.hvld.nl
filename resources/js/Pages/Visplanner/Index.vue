@@ -54,6 +54,7 @@ onMounted(() => {
 
     const bounds = L.latLngBounds();
     let hasLayers = false;
+    let selectedLayer = null;
 
     props.waters.forEach(water => {
         // 1. Teken het water zelf
@@ -90,6 +91,23 @@ onMounted(() => {
                     </div>
                 `;
                 layer.bindPopup(popupContent);
+
+                // Highlight effect bij selectie
+                layer.on('click', () => {
+                    if (selectedLayer && selectedLayer !== layer) {
+                        selectedLayer.resetStyle();
+                    }
+                    selectedLayer = layer;
+                    layer.setStyle({
+                        weight: 5,
+                        fillOpacity: 0.6
+                    });
+                });
+
+                layer.on('popupclose', () => {
+                    layer.resetStyle();
+                    selectedLayer = null;
+                });
 
                 if (layer.getBounds) {
                     bounds.extend(layer.getBounds());
