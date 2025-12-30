@@ -54,4 +54,12 @@ class Water extends Model
     {
         return $this->belongsTo(OvertredingType::class, 'default_overtreding_type_id');
     }
+
+    /**
+     * Relatie: Een Water kan meerdere Nachtviszones hebben.
+     */
+    public function nachtviszones()
+    {
+        return $this->hasMany(Nachtviszone::class);
+    }
 }

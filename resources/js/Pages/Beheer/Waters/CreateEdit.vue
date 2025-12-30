@@ -36,16 +36,18 @@ const form = useForm({
     center_lng: props.water ? props.water.center_lng : null,
     is_verboden: props.water ? !!props.water.is_verboden : false,
     default_overtreding_type_id: props.water ? props.water.default_overtreding_type_id : null,
+    nachtviszones: props.water && props.water.nachtviszones ? props.water.nachtviszones.map(z => z.boundary) : [],
 });
 
 // Refs voor kaart elementen
 const mapContainer = ref(null);
 const hasPolygon = ref(!!props.water?.boundary);
-const isDrawingHole = ref(false);
+const drawingMode = ref('water'); // 'water', 'hole', 'zone'
 
 // Leaflet variabelen (niet reactief nodig omdat Leaflet zijn eigen state beheert)
 let map = null;
 let drawnItems = null; // FeatureGroup voor alle polygonen
+let zoneItems = null; // FeatureGroup voor nachtviszones
 let tempMarkers = []; // Markers tijdens het tekenen
 let tempPoints = [];
 let tempLine = null;
@@ -88,6 +90,7 @@ const initMap = () => {
 
     // FeatureGroup voor opgeslagen polygonen
     drawnItems = new L.FeatureGroup().addTo(map);
+    zoneItems = new L.FeatureGroup().addTo(map);
 
     // Laad bestaande grenzen (polygoon) indien aanwezig
     if (form.boundary) {
@@ -97,7 +100,7 @@ const initMap = () => {
             
             layer.eachLayer((l) => {
                 if (l instanceof L.Polygon) {
-                    addEditablePolygon(l.getLatLngs());
+                    addEditablePolygon(l.getLatLngs(), true);
                 }
             });
 
@@ -107,6 +110,21 @@ const initMap = () => {
         } catch (e) {
             console.error("Error parsing boundary GeoJSON", e);
         }
+    }
+
+    // Laad bestaande nachtviszones
+    if (form.nachtviszones && form.nachtviszones.length > 0) {
+        form.nachtviszones.forEach(zoneJson => {
+            try {
+                const geoJson = typeof zoneJson === 'string' ? JSON.parse(zoneJson) : zoneJson;
+                const layer = L.geoJSON(geoJson);
+                layer.eachLayer((l) => {
+                    if (l instanceof L.Polygon) {
+                        addEditableZone(l.getLatLngs(), true);
+                    }
+                });
+            } catch (e) { console.error("Error parsing zone GeoJSON", e); }
+        });
     }
 
     // Click handler: Voeg punten toe als er nog geen polygoon is
@@ -150,7 +168,7 @@ const drawTempLines = () => {
 
 // Rond het tekenproces af en converteert punten naar een polygoon
 const finishPolygon = () => {
-    if (isDrawingHole.value) {
+    if (drawingMode.value === 'hole') {
         // Gat toevoegen aan bestaand polygon
         let parentLayer = null;
         const holeLatlngs = [...tempPoints];
@@ -181,6 +199,8 @@ const finishPolygon = () => {
         } else {
             alert("Het getekende gat valt niet binnen een bestaand watervlak. Teken het gat volledig binnen een bestaand vlak.");
         }
+    } else if (drawingMode.value === 'zone') {
+        addEditableZone(tempPoints);
     } else {
         addEditablePolygon(tempPoints);
     }
@@ -194,7 +214,7 @@ const finishPolygon = () => {
 };
 
 // Voegt een bewerkbare polygoon toe aan de kaart (en drawnItems)
-const addEditablePolygon = (latlngs) => {
+const addEditablePolygon = (latlngs, skipUpdate = false) => {
     const color = form.is_verboden ? '#dc2626' : '#2563eb';
     const fillColor = form.is_verboden ? '#ef4444' : '#3b82f6';
     const layer = L.polygon(latlngs, { color: color, weight: 2, fillColor: fillColor, fillOpacity: 0.3 }).addTo(drawnItems);
@@ -212,7 +232,7 @@ const addEditablePolygon = (latlngs) => {
     popupContent.appendChild(btn);
 
     layer.on('click', (e) => {
-        if (isDrawingHole.value) {
+        if (drawingMode.value === 'hole') {
             addTempPoint(e.latlng);
         } else {
             L.popup().setLatLng(e.latlng).setContent(popupContent).openOn(map);
@@ -220,7 +240,41 @@ const addEditablePolygon = (latlngs) => {
     });
 
     rebuildHandles(layer);
-    updateForm();
+    if (!skipUpdate) {
+        updateForm();
+    }
+};
+
+// Voegt een bewerkbare nachtviszone toe
+const addEditableZone = (latlngs, skipUpdate = false) => {
+    const color = '#10b981'; // Green-500
+    const fillColor = '#34d399'; // Green-400
+    const layer = L.polygon(latlngs, { color: color, weight: 2, fillColor: fillColor, fillOpacity: 0.5, dashArray: '5, 5' }).addTo(zoneItems);
+    
+    // Voeg popup toe om vlak te verwijderen
+    const popupContent = document.createElement('div');
+    const btn = document.createElement('button');
+    btn.innerText = 'Verwijder deze nachtviszone';
+    btn.className = 'text-red-600 font-bold hover:underline text-sm';
+    btn.type = 'button';
+    btn.onclick = () => {
+        removeEditableZone(layer);
+        map.closePopup();
+    };
+    popupContent.appendChild(btn);
+
+    layer.on('click', (e) => {
+        // Als we aan het tekenen zijn, negeer clicks op zones (zodat we punten kunnen zetten)
+        if (tempPoints.length > 0) return;
+        
+        L.DomEvent.stopPropagation(e);
+        L.popup().setLatLng(e.latlng).setContent(popupContent).openOn(map);
+    });
+
+    rebuildHandles(layer);
+    if (!skipUpdate) {
+        updateForm();
+    }
 };
 
 // Herbouwt de sleepbare handles voor een polygon (nodig na wijziging geometrie/gaten)
@@ -280,6 +334,15 @@ const removeEditablePolygon = (layer) => {
     updateForm();
 };
 
+// Verwijder een zone
+const removeEditableZone = (layer) => {
+    if (layer._handles) {
+        layer._handles.forEach(h => map.removeLayer(h));
+    }
+    zoneItems.removeLayer(layer);
+    updateForm();
+};
+
 // Watcher: Pas de kleur van de polygoon direct aan als de checkbox verandert
 watch(() => form.is_verboden, (newVal) => {
     if (drawnItems) {
@@ -295,6 +358,7 @@ watch(() => form.is_verboden, (newVal) => {
 const resetMap = () => {
     map.closePopup();
     drawnItems.eachLayer(layer => removeEditablePolygon(layer));
+    zoneItems.eachLayer(layer => removeEditableZone(layer));
     
     tempMarkers.forEach(m => map.removeLayer(m));
     if (tempLine) map.removeLayer(tempLine);
@@ -334,6 +398,13 @@ const updateForm = () => {
     const center = drawnItems.getBounds().getCenter();
     form.center_lat = center.lat.toFixed(6);
     form.center_lng = center.lng.toFixed(6);
+
+    // Update zones
+    const zoneLayers = zoneItems.getLayers();
+    form.nachtviszones = zoneLayers.map(layer => {
+        const geoJson = layer.toGeoJSON();
+        return JSON.stringify(geoJson.geometry);
+    });
 };
 
 const submit = () => {
@@ -423,12 +494,21 @@ onMounted(() => {
                                 <div class="flex justify-between items-end mb-2">
                                     <InputLabel value="Intekenen op Kaart" class="mb-0" />
                                     <div class="flex space-x-4">
-                                        <label class="inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" v-model="isDrawingHole" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
-                                            <span class="ml-2 text-xs font-bold text-gray-700">
-                                                {{ isDrawingHole ? 'Gat Tekenen' : 'Vlak Tekenen' }}
+                                        <select v-model="drawingMode" class="text-xs border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm py-1 pl-2 pr-8">
+                                            <option value="water">💧 Watergrens</option>
+                                            <option value="hole">✂️ Gat in Water</option>
+                                            <option value="zone">🌙 Nachtviszone</option>
+                                        </select>
+                                        
+                                        <div class="flex items-center space-x-2 text-xs">
+                                            <span class="flex items-center">
+                                                <span class="w-3 h-3 bg-blue-500 inline-block mr-1 rounded-sm"></span> Water
                                             </span>
-                                        </label>
+                                            <span class="flex items-center">
+                                                <span class="w-3 h-3 bg-green-500 inline-block mr-1 rounded-sm"></span> Zone
+                                            </span>
+                                        </div>
+
                                         <button v-if="hasPolygon" type="button" @click="resetMap" class="text-xs text-red-600 hover:text-red-800 underline">
                                             Alles Wissen
                                         </button>
@@ -437,8 +517,9 @@ onMounted(() => {
                                 
                                 <div class="text-sm text-gray-600 mb-3 bg-blue-50 p-3 rounded border border-blue-100">
                                     <ul class="list-disc pl-4 space-y-1 text-xs">
-                                        <li v-if="!isDrawingHole">Klik op de kaart om hoekpunten te plaatsen voor een <strong>nieuw vlak</strong>.</li>
-                                        <li v-if="isDrawingHole">Klik op de kaart om hoekpunten te plaatsen voor een <strong>gat</strong> (binnen een bestaand vlak).</li>
+                                        <li v-if="drawingMode === 'water'">Klik op de kaart om hoekpunten te plaatsen voor een <strong>nieuw watervlak</strong>.</li>
+                                        <li v-if="drawingMode === 'hole'">Klik op de kaart om hoekpunten te plaatsen voor een <strong>gat</strong> (binnen een bestaand vlak).</li>
+                                        <li v-if="drawingMode === 'zone'">Klik op de kaart om een <strong>nachtviszone</strong> (groen) te tekenen.</li>
                                         <li>Klik op het <strong class="text-red-600">rode startpunt</strong> om de vorm te sluiten.</li>
                                         <li v-if="hasPolygon">Sleep de <strong class="text-orange-500">oranje punten</strong> om de vorm aan te passen.</li>
                                         <li v-if="hasPolygon">Klik op een vlak om deze te verwijderen.</li>
