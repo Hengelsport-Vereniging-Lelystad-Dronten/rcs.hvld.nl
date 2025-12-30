@@ -36,13 +36,15 @@ const initMap = () => {
                 const color = water.is_verboden ? '#dc2626' : '#2563eb';
                 const fillColor = water.is_verboden ? '#ef4444' : '#3b82f6';
 
+                const defaultStyle = {
+                    color: color,
+                    weight: 2,
+                    fillColor: fillColor,
+                    fillOpacity: 0.3
+                };
+
                 const waterLayer = L.geoJSON(geoJson, {
-                    style: {
-                        color: color,
-                        weight: 2,
-                        fillColor: fillColor,
-                        fillOpacity: 0.3
-                    }
+                    style: defaultStyle
                 }).addTo(map);
 
                 // Popup for water
@@ -52,6 +54,18 @@ const initMap = () => {
                     ${water.beheersgebied ? `<span class="text-xs text-gray-500">${water.beheersgebied}</span>` : ''}
                 `);
 
+                // Highlight bij openen popup
+                waterLayer.on('popupopen', () => {
+                    waterLayer.setStyle({
+                        weight: 5,
+                        fillOpacity: 0.5
+                    });
+                });
+
+                waterLayer.on('popupclose', () => {
+                    waterLayer.setStyle(defaultStyle);
+                });
+
                 bounds.extend(waterLayer.getBounds());
 
                 // Nachtviszones
@@ -60,20 +74,35 @@ const initMap = () => {
                         try {
                             const zoneGeoJson = typeof zone.boundary === 'string' ? JSON.parse(zone.boundary) : zone.boundary;
                             
+                            const zoneDefaultStyle = {
+                                color: '#10b981', // Green-500
+                                weight: 2,
+                                fillColor: '#34d399', // Green-400
+                                fillOpacity: 0.5,
+                                dashArray: '5, 5'
+                            };
+
                             const zoneLayer = L.geoJSON(zoneGeoJson, {
-                                style: {
-                                    color: '#10b981', // Green-500
-                                    weight: 2,
-                                    fillColor: '#34d399', // Green-400
-                                    fillOpacity: 0.5,
-                                    dashArray: '5, 5'
-                                }
+                                style: zoneDefaultStyle
                             }).addTo(zoneLayerGroup);
 
                             zoneLayer.bindPopup(`
                                 <strong>Nachtviszone</strong><br>
                                 <span class="text-xs">Onderdeel van: ${water.naam}</span>
                             `);
+
+                            // Highlight bij openen popup
+                            zoneLayer.on('popupopen', () => {
+                                zoneLayer.setStyle({
+                                    weight: 5,
+                                    fillOpacity: 0.8,
+                                    dashArray: '' // Solid border bij selectie
+                                });
+                            });
+
+                            zoneLayer.on('popupclose', () => {
+                                zoneLayer.setStyle(zoneDefaultStyle);
+                            });
                         } catch (e) {
                             console.error("Error parsing zone GeoJSON", e);
                         }
