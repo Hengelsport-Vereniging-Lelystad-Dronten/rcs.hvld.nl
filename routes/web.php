@@ -13,6 +13,7 @@
 
 
 use App\Http\Controllers\ControleRondeController;
+use App\Http\Controllers\VisplannerController;
 use App\Http\Controllers\OvertredingController;
 use App\Http\Controllers\WaterQuickAddController;
 use App\Http\Controllers\UitlegController;
@@ -40,6 +41,10 @@ use Inertia\Inertia;
 | die de sessiestatus, CSRF-beveiliging en andere standaardmiddleware bevat.
 |
 */
+
+// PUBLIEKE ROUTES
+// Publieke waterkaart, toegankelijk zonder inloggen.
+Route::get('/visplanner', [VisplannerController::class, 'index'])->name('visplanner.index');
 
 // --- GROEP 1: Basis en Functionele Routes voor ELKE ingelogde gebruiker ---
 // Deze groep combineert de basisfunctionaliteit (Dashboard/Profiel) en de
