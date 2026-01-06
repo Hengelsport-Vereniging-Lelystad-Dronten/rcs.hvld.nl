@@ -126,7 +126,7 @@ const canViewManagementDashboard = user.role === 'Beheerder';
                                 <NavLink
                                     v-if="user.role === 'Beheerder'"
                                     :href="route('beheer.index')"
-                                    :active="route().current('beheer.index')"
+                                    :active="route().current('beheer.*')"
                                 >
                                     Beheer
                                 </NavLink>
@@ -277,7 +277,7 @@ const canViewManagementDashboard = user.role === 'Beheerder';
                         <ResponsiveNavLink
                             v-if="user.role === 'Beheerder'"
                             :href="route('beheer.index')"
-                            :active="route().current('beheer.index')"
+                            :active="route().current('beheer.*')"
                         >
                             Beheer
                         </ResponsiveNavLink>

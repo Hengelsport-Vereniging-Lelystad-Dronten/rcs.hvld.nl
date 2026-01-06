@@ -12,7 +12,9 @@ class FaqController extends Controller
     public function index()
     {
         $faqs = Faq::orderBy('order')->get();
-        return Inertia::render('Beheer/Faqs/Index', ['faqs' => $faqs]);
+        return Inertia::render('Beheer/Faqs/Index', [
+            'faqs' => $faqs
+        ]);
     }
 
     public function create()
@@ -26,11 +28,16 @@ class FaqController extends Controller
             'question' => 'required|string|max:255',
             'answer' => 'required|string',
             'order' => 'required|integer',
+            'is_active' => 'boolean',
         ]);
 
-        Faq::create($validated);
+        $faq = Faq::create($validated);
 
-        return redirect()->route('beheer.faqs.index')->with('success', 'FAQ succesvol aangemaakt.');
+        activity()
+            ->performedOn($faq)
+            ->log('FAQ item aangemaakt');
+
+        return redirect()->route('beheer.faqs.index')->with('success', 'FAQ item succesvol aangemaakt.');
     }
 
     public function edit(Faq $faq)
@@ -44,16 +51,25 @@ class FaqController extends Controller
             'question' => 'required|string|max:255',
             'answer' => 'required|string',
             'order' => 'required|integer',
+            'is_active' => 'boolean',
         ]);
+
+        $oldData = $faq->only(['question', 'answer', 'order', 'is_active']);
 
         $faq->update($validated);
 
-        return redirect()->route('beheer.faqs.index')->with('success', 'FAQ succesvol bijgewerkt.');
+        activity()
+            ->performedOn($faq)
+            ->withProperties(['old' => $oldData, 'new' => $validated])
+            ->log('FAQ item bijgewerkt');
+
+        return redirect()->route('beheer.faqs.index')->with('success', 'FAQ item succesvol bijgewerkt.');
     }
 
     public function destroy(Faq $faq)
     {
+        activity()->performedOn($faq)->log('FAQ item verwijderd');
         $faq->delete();
-        return redirect()->route('beheer.faqs.index')->with('success', 'FAQ verwijderd.');
+        return redirect()->route('beheer.faqs.index')->with('success', 'FAQ item verwijderd.');
     }
 }

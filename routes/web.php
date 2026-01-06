@@ -17,6 +17,7 @@ use App\Http\Controllers\VisplannerController;
 use App\Http\Controllers\OvertredingController;
 use App\Http\Controllers\WaterQuickAddController;
 use App\Http\Controllers\UitlegController;
+use App\Http\Controllers\FaqController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KaartController;
@@ -84,7 +85,7 @@ Route::middleware('auth')->group(function () {
     // UITLEG SECTIE
     Route::get('/uitleg', [UitlegController::class, 'index'])->name('uitleg.index');
     Route::get('/uitleg/kaart', [UitlegController::class, 'kaart'])->name('uitleg.kaart');
-    Route::get('/uitleg/faq', [UitlegController::class, 'faq'])->name('uitleg.faq');
+    Route::get('/uitleg/faq', [FaqController::class, 'index'])->name('uitleg.faq');
     Route::get('/uitleg/overtredingen', [UitlegController::class, 'overtredingen'])->name('uitleg.overtredingen');
     Route::get('/uitleg/handleidingen', [UitlegController::class, 'handleidingen'])->name('uitleg.handleidingen');
 });

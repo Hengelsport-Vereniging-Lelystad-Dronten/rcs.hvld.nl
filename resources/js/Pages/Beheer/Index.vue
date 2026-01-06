@@ -51,6 +51,14 @@ import { Head, Link } from '@inertiajs/vue3';
                                 <p class="text-sm text-gray-500">Definieer en beheer de sancties en strafmaten die bij overtredingen toegepast kunnen worden.</p>
                             </div>
 
+                            <!-- 4. FAQ Beheer (NIEUW) -->
+                            <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
+                                <Link :href="route('beheer.faqs.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
+                                    ❓ FAQ Beheer
+                                </Link>
+                                <p class="text-sm text-gray-500">Beheer de veelgestelde vragen en antwoorden die zichtbaar zijn op de uitlegpagina.</p>
+                            </div>
+
                             <!-- 4. Overtreding Types Beheer -->
                             <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
                                 <Link :href="route('beheer.overtreding_types.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
