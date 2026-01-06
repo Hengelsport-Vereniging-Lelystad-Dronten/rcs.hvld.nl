@@ -1,17 +1,28 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import TextInput from '@/Components/TextInput.vue';
 
-defineProps({
+const props = defineProps({
     faqs: Array
 });
 
 const openFaq = ref(null);
+const searchQuery = ref('');
 
 const toggle = (id) => {
     openFaq.value = openFaq.value === id ? null : id;
 };
+
+const filteredFaqs = computed(() => {
+    if (!searchQuery.value) return props.faqs;
+    const query = searchQuery.value.toLowerCase();
+    return props.faqs.filter(faq => 
+        faq.question.toLowerCase().includes(query) || 
+        faq.answer.toLowerCase().includes(query)
+    );
+});
 </script>
 
 <template>
@@ -27,8 +38,18 @@ const toggle = (id) => {
 
         <div class="py-12">
             <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+                
+                <!-- Zoekbalk -->
+                <div class="mb-6">
+                    <TextInput 
+                        v-model="searchQuery" 
+                        placeholder="Zoek in vragen en antwoorden..." 
+                        class="w-full"
+                    />
+                </div>
+
                 <div class="space-y-4">
-                    <div v-for="faq in faqs" :key="faq.id" class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div v-for="faq in filteredFaqs" :key="faq.id" class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <button @click="toggle(faq.id)" class="w-full text-left px-6 py-4 focus:outline-none flex justify-between items-center">
                             <span class="font-bold text-gray-800">{{ faq.question }}</span>
                             <span class="text-gray-500 text-xl">{{ openFaq === faq.id ? '−' : '+' }}</span>
@@ -38,8 +59,8 @@ const toggle = (id) => {
                         </div>
                     </div>
 
-                    <div v-if="faqs.length === 0" class="text-center text-gray-500 py-8">
-                        Er zijn nog geen veelgestelde vragen toegevoegd.
+                    <div v-if="filteredFaqs.length === 0" class="text-center text-gray-500 py-8">
+                        {{ faqs.length === 0 ? 'Er zijn nog geen veelgestelde vragen toegevoegd.' : 'Geen resultaten gevonden voor je zoekopdracht.' }}
                     </div>
                 </div>
             </div>
