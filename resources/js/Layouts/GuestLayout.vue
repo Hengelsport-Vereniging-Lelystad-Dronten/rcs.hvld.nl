@@ -27,7 +27,7 @@ import { Link } from '@inertiajs/vue3';
             <span class="text-gray-300">|</span>
             <Link :href="route('privacy')" class="text-blue-600 hover:underline mx-2">Privacyverklaring</Link>
             <span class="text-gray-300">|</span>
-            <Link href="/visplanner" class="text-blue-600 hover:underline mx-2">Visplanner</Link>
+            <Link :href="route('visplanner.index')" class="text-blue-600 hover:underline mx-2">Visplanner</Link>
         </div>
     </div>
 </template>

@@ -26,6 +26,11 @@ class WaterQuickAddController extends Controller
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
         ]);
+
+        // Default beheersgebied instellen indien leeg
+        if (empty($validated['beheersgebied'])) {
+            $validated['beheersgebied'] = 'HVLD';
+        }
         
         // Zorg ervoor dat de user_id van de aanmaker wordt opgeslagen (indien nodig),
         // of een default waarde wordt gebruikt. We gaan uit van minimale velden:

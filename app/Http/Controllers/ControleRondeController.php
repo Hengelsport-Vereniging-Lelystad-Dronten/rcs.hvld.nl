@@ -44,7 +44,7 @@ class ControleRondeController extends Controller
     public function create()
     {
         // We hebben de lijst met beschikbare wateren nodig voor de dropdown
-        $waters = Water::orderBy('naam')->get();
+        $waters = Water::orderBy('beheersgebied')->orderBy('naam')->get();
 
         return Inertia::render('ControleRondes/Start', [
             'waters' => $waters,

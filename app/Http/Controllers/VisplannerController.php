@@ -21,6 +21,7 @@ class VisplannerController extends Controller
                 'naam' => $water->naam,
                 'beschrijving' => $water->beschrijving,
                 'boundary' => $water->boundary,
+                'beheersgebied' => $water->beheersgebied,
                 'is_verboden' => $water->is_verboden,
                 'nachtviszones' => $water->nachtviszones,
             ];

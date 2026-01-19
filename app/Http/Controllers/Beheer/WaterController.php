@@ -62,6 +62,7 @@ class WaterController extends Controller
     {
         $validated = $request->validate([
             'naam' => 'required|string|max:255|unique:waters,naam',
+            'beheersgebied' => 'nullable|string|max:255',
             'beschrijving' => 'nullable|string',
             'boundary' => 'nullable|json', // Accepteert zowel Polygon als MultiPolygon GeoJSON
             // GPS-velden toegevoegd, deze zijn vereist in de frontend
@@ -83,6 +84,11 @@ class WaterController extends Controller
         if (isset($validated['center_lng'])) {
             $validated['longitude'] = $validated['center_lng'];
             unset($validated['center_lng']);
+        }
+
+        // Default beheersgebied instellen indien leeg
+        if (empty($validated['beheersgebied'])) {
+            $validated['beheersgebied'] = 'HVLD';
         }
 
         // Gebruik alleen de gevalideerde data
@@ -142,6 +148,7 @@ class WaterController extends Controller
         $validated = $request->validate([
             // Gebruik Rule::unique om de huidige record te negeren
             'naam' => ['required', 'string', 'max:255', Rule::unique('waters', 'naam')->ignore($water->id)],
+            'beheersgebied' => 'nullable|string|max:255',
             'beschrijving' => 'nullable|string',
             'boundary' => 'nullable|json', // Accepteert zowel Polygon als MultiPolygon GeoJSON
             // GPS-velden toegevoegd
@@ -163,6 +170,11 @@ class WaterController extends Controller
         if (isset($validated['center_lng'])) {
             $validated['longitude'] = $validated['center_lng'];
             unset($validated['center_lng']);
+        }
+
+        // Default beheersgebied instellen indien leeg
+        if (empty($validated['beheersgebied'])) {
+            $validated['beheersgebied'] = 'HVLD';
         }
 
         $oldData = $water->only(['naam', 'beschrijving', 'latitude', 'longitude', 'boundary']);

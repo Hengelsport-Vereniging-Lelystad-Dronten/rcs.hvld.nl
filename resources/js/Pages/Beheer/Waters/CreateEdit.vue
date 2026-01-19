@@ -30,6 +30,7 @@ const isEdit = !!(props.water && props.water.id);
 // Initialiseer het formulier met Inertia useForm
 const form = useForm({
     naam: props.water ? props.water.naam : '',
+    beheersgebied: props.water ? props.water.beheersgebied : 'HVLD',
     beschrijving: props.water ? props.water.beschrijving : '',
     boundary: props.water ? props.water.boundary : null,
     center_lat: props.water ? props.water.center_lat : null,
@@ -72,6 +73,17 @@ const tempPointIcon = L.divIcon({
     iconSize: [10, 10],
     iconAnchor: [5, 5],
 });
+
+// Helper voor kleuren op basis van status en beheersgebied
+const getPolygonStyle = () => {
+    if (form.is_verboden) {
+        return { color: '#dc2626', fillColor: '#ef4444' }; // Rood (Verboden)
+    }
+    if (form.beheersgebied === 'SVU') {
+        return { color: '#ea580c', fillColor: '#f97316' }; // Oranje (SVU)
+    }
+    return { color: '#2563eb', fillColor: '#3b82f6' }; // Blauw (HVLD)
+};
 
 // ====================================================================
 // KAART LOGICA
@@ -215,8 +227,7 @@ const finishPolygon = () => {
 
 // Voegt een bewerkbare polygoon toe aan de kaart (en drawnItems)
 const addEditablePolygon = (latlngs, skipUpdate = false) => {
-    const color = form.is_verboden ? '#dc2626' : '#2563eb';
-    const fillColor = form.is_verboden ? '#ef4444' : '#3b82f6';
+    const { color, fillColor } = getPolygonStyle();
     const layer = L.polygon(latlngs, { color: color, weight: 2, fillColor: fillColor, fillOpacity: 0.3 }).addTo(drawnItems);
     
     // Voeg popup toe om vlak te verwijderen
@@ -344,10 +355,9 @@ const removeEditableZone = (layer) => {
 };
 
 // Watcher: Pas de kleur van de polygoon direct aan als de checkbox verandert
-watch(() => form.is_verboden, (newVal) => {
+watch([() => form.is_verboden, () => form.beheersgebied], () => {
     if (drawnItems) {
-        const color = newVal ? '#dc2626' : '#2563eb';
-        const fillColor = newVal ? '#ef4444' : '#3b82f6';
+        const { color, fillColor } = getPolygonStyle();
         drawnItems.eachLayer(layer => {
             layer.setStyle({ color, fillColor });
         });
@@ -445,6 +455,15 @@ onMounted(() => {
                                 </div>
 
                                 <div>
+                                    <InputLabel for="beheersgebied" value="Beheersgebied" />
+                                    <select id="beheersgebied" v-model="form.beheersgebied" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                                        <option value="HVLD">HVLD</option>
+                                        <option value="SVU">SportvisUnie (SVU)</option>
+                                    </select>
+                                    <InputError class="mt-2" :message="form.errors.beheersgebied" />
+                                </div>
+
+                                <div>
                                     <InputLabel for="beschrijving" value="Beschrijving" />
                                     <!-- Gebruik van de nieuwe WYSIWYG editor -->
                                     <WysiwygInput id="beschrijving" class="mt-1 block w-full" v-model="form.beschrijving" />
@@ -500,9 +519,15 @@ onMounted(() => {
                                             <option value="zone">🌙 Nachtviszone</option>
                                         </select>
                                         
-                                        <div class="flex items-center space-x-2 text-xs">
+                                        <div class="flex items-center space-x-3 text-xs">
                                             <span class="flex items-center">
-                                                <span class="w-3 h-3 bg-blue-500 inline-block mr-1 rounded-sm"></span> Water
+                                                <span class="w-3 h-3 bg-blue-500 inline-block mr-1 rounded-sm"></span> HVLD
+                                            </span>
+                                            <span class="flex items-center">
+                                                <span class="w-3 h-3 bg-orange-500 inline-block mr-1 rounded-sm"></span> SVU
+                                            </span>
+                                            <span class="flex items-center">
+                                                <span class="w-3 h-3 bg-red-500 inline-block mr-1 rounded-sm"></span> Verboden
                                             </span>
                                             <span class="flex items-center">
                                                 <span class="w-3 h-3 bg-green-500 inline-block mr-1 rounded-sm"></span> Zone
