@@ -21,5 +21,13 @@ import { Link } from '@inertiajs/vue3';
         >
             <slot />
         </div>
+
+        <div class="mt-6 text-center text-sm text-gray-500">
+            <Link :href="route('security')" class="text-blue-600 hover:underline mx-2">Beveiliging</Link>
+            <span class="text-gray-300">|</span>
+            <Link :href="route('privacy')" class="text-blue-600 hover:underline mx-2">Privacyverklaring</Link>
+            <span class="text-gray-300">|</span>
+            <Link href="/visplanner" class="text-blue-600 hover:underline mx-2">Visplanner</Link>
+        </div>
     </div>
 </template>
