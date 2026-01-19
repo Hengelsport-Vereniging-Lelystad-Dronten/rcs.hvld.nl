@@ -328,6 +328,13 @@ const canViewManagementDashboard = user.role === 'Beheerder';
                 <slot />
             </main>
 
+            <!-- Footer -->
+            <footer class="py-6 text-center text-sm text-gray-500 relative z-10">
+                <Link :href="route('privacy')" class="text-blue-600 hover:underline mx-2">Privacyverklaring</Link>
+                <span class="text-gray-300">|</span>
+                <Link :href="route('security')" class="text-blue-600 hover:underline mx-2">Beveiliging & Responsible Disclosure</Link>
+            </footer>
+
             <!-- HVLD Watermerk -->
             <div class="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
                 <ApplicationLogo class="h-96 w-auto opacity-5" />

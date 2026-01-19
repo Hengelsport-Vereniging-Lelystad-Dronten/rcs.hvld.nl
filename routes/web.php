@@ -47,6 +47,16 @@ use Inertia\Inertia;
 // Publieke waterkaart, toegankelijk zonder inloggen.
 Route::get('/visplanner', [VisplannerController::class, 'index'])->name('visplanner.index');
 
+// Privacyverklaring
+Route::get('/privacy', function () {
+    return Inertia::render('Privacy');
+})->name('privacy');
+
+// Security / Responsible Disclosure
+Route::get('/security', function () {
+    return Inertia::render('Security');
+})->name('security');
+
 // --- GROEP 1: Basis en Functionele Routes voor ELKE ingelogde gebruiker ---
 // Deze groep combineert de basisfunctionaliteit (Dashboard/Profiel) en de
 // dagelijkse taken (Controles, Overtredingen). Er is GEEN verplichte
