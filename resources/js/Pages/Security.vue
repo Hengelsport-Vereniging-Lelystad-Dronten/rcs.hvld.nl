@@ -93,9 +93,11 @@ import { Head, Link } from '@inertiajs/vue3';
 
                     <!-- Footer -->
                     <div class="mt-12 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
-                        <Link href="/privacy" class="text-blue-600 hover:underline mx-2">Privacyverklaring</Link>
+                        <Link :href="route('privacy')" class="text-blue-600 hover:underline mx-2">Privacyverklaring</Link>
                         <span class="text-gray-300">|</span>
-                        <Link href="/security" class="text-blue-600 hover:underline mx-2">Beveiliging & Responsible Disclosure</Link>
+                        <Link :href="route('security')" class="text-blue-600 hover:underline mx-2">Beveiliging & Responsible Disclosure</Link>
+                        <span class="text-gray-300">|</span>
+                        <Link :href="route('visplanner.index')" class="text-blue-600 hover:underline mx-2">Visplanner</Link>
                     </div>
 
                 </div>

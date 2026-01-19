@@ -104,7 +104,12 @@ const getStatusColor = (status) => {
                                         <!-- Mobiel label (zichtbaar op mobiel, hidden md:hidden) -->
                                         <span class="md:hidden font-bold block text-sm text-gray-500">Water:</span>
                                         <!-- Naam van het gecontroleerde water -->
-                                        <span class="font-medium text-gray-900">{{ ronde.water.naam }}</span>
+                                        <span class="font-medium text-gray-900">
+                                            {{ ronde.water.naam }}
+                                            <span v-if="ronde.water.beheersgebied" :class="ronde.water.beheersgebied === 'SVU' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'" class="ml-1 text-[10px] px-1.5 py-0.5 rounded-full align-middle">
+                                                {{ ronde.water.beheersgebied }}
+                                            </span>
+                                        </span>
                                     </div>
                                     <div class="md:p-2">
                                         <span class="md:hidden font-bold block text-sm text-gray-500">Controller:</span>

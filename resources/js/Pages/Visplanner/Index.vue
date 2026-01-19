@@ -63,8 +63,11 @@ onMounted(() => {
                 const geoJson = typeof water.boundary === 'string' ? JSON.parse(water.boundary) : water.boundary;
                 
                 // Stijl bepalen op basis van status
-                const color = water.is_verboden ? '#dc2626' : '#2563eb'; // Rood-600 of Blauw-600
-                const fillColor = water.is_verboden ? '#ef4444' : '#3b82f6'; // Rood-500 of Blauw-500
+                let color = '#2563eb'; // Blauw-600 (HVLD default)
+                let fillColor = '#3b82f6'; // Blauw-500
+
+                if (water.is_verboden) { color = '#dc2626'; fillColor = '#ef4444'; }
+                else if (water.beheersgebied === 'SVU') { color = '#ea580c'; fillColor = '#f97316'; }
                 
                 const layer = L.geoJSON(geoJson, {
                     style: {
@@ -78,7 +81,12 @@ onMounted(() => {
                 // Popup samenstellen
                 const popupContent = `
                     <div class="min-w-[200px] font-sans">
-                        <h3 class="font-bold text-lg mb-1 text-gray-900">${water.naam}</h3>
+                        <div class="flex justify-between items-start mb-1">
+                            <h3 class="font-bold text-lg text-gray-900 mr-2">${water.naam}</h3>
+                            ${water.beheersgebied ? 
+                                `<span class="text-[10px] px-1.5 py-0.5 rounded font-bold ${water.beheersgebied === 'SVU' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'}">${water.beheersgebied}</span>` 
+                                : ''}
+                        </div>
                         <div class="text-sm text-gray-600 mb-3 max-h-32 overflow-y-auto prose prose-sm">
                             ${water.beschrijving || 'Geen beschrijving beschikbaar.'}
                         </div>
@@ -206,7 +214,11 @@ onMounted(() => {
                 <ul class="space-y-2 mt-2 pt-2 border-t border-gray-100">
                     <li class="flex items-center">
                         <span class="w-4 h-4 bg-blue-500/40 border-2 border-blue-600 rounded-sm mr-2"></span>
-                        <span class="text-gray-700 text-xs">Viswater</span>
+                        <span class="text-gray-700 text-xs">HVLD Viswater</span>
+                    </li>
+                    <li class="flex items-center">
+                        <span class="w-4 h-4 bg-orange-500/40 border-2 border-orange-600 rounded-sm mr-2"></span>
+                        <span class="text-gray-700 text-xs">SVU Viswater</span>
                     </li>
                     <li class="flex items-center">
                         <span class="w-4 h-4 bg-red-500/40 border-2 border-red-600 rounded-sm mr-2"></span>

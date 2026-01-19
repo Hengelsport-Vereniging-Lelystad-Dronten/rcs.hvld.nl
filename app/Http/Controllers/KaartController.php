@@ -14,7 +14,7 @@ class KaartController extends Controller
         // We selecteren alleen de kolommen die we nodig hebben voor de kaart
         $waters = Water::whereNotNull('latitude')
                        ->whereNotNull('longitude')
-                       ->select('id', 'naam', 'beschrijving', 'latitude', 'longitude', 'boundary', 'is_verboden')
+                       ->select('id', 'naam', 'beschrijving', 'latitude', 'longitude', 'boundary', 'is_verboden', 'beheersgebied')
                        ->get();
 
         // Render de Vue pagina 'Uitleg/Kaart' en geef de waters mee als prop

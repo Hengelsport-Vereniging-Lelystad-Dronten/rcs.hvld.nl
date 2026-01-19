@@ -33,8 +33,11 @@ const initMap = () => {
                 const geoJson = typeof water.boundary === 'string' ? JSON.parse(water.boundary) : water.boundary;
                 
                 // Water styling
-                const color = water.is_verboden ? '#dc2626' : '#2563eb';
-                const fillColor = water.is_verboden ? '#ef4444' : '#3b82f6';
+                let color = '#2563eb'; // Blauw (HVLD)
+                let fillColor = '#3b82f6';
+
+                if (water.is_verboden) { color = '#dc2626'; fillColor = '#ef4444'; }
+                else if (water.beheersgebied === 'SVU') { color = '#ea580c'; fillColor = '#f97316'; }
 
                 const defaultStyle = {
                     color: color,
@@ -51,7 +54,9 @@ const initMap = () => {
                 waterLayer.bindPopup(`
                     <strong>${water.naam}</strong><br>
                     ${water.is_verboden ? '<span class="text-red-600 font-bold">Verboden Water</span>' : 'Viswater'}<br>
-                    ${water.beheersgebied ? `<span class="text-xs text-gray-500">${water.beheersgebied}</span>` : ''}
+                    ${water.beheersgebied ? 
+                        `<span class="text-xs font-bold px-1 rounded ${water.beheersgebied === 'SVU' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'}">${water.beheersgebied}</span>` 
+                        : ''}
                 `);
 
                 // Highlight bij openen popup
@@ -151,7 +156,11 @@ watch(showNachtviszones, (isVisible) => {
                     <div class="mb-4 flex flex-wrap gap-x-6 gap-y-2 text-sm items-center">
                         <div class="flex items-center">
                             <span class="w-4 h-4 bg-blue-500 opacity-50 mr-2 border border-blue-600"></span>
-                            <span>Regulier Viswater</span>
+                            <span>HVLD Viswater</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-4 h-4 bg-orange-500 opacity-50 mr-2 border border-orange-600"></span>
+                            <span>SVU Viswater</span>
                         </div>
                         <div class="flex items-center">
                             <span class="w-4 h-4 bg-red-500 opacity-50 mr-2 border border-red-600"></span>
