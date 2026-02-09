@@ -1,38 +1,95 @@
 ---
 name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: ''
-assignees: ''
+about: Meld een fout of onverwacht gedrag
+title: "[BUG] "
+labels: bug
+assignees: ""
+---
+
+## Omschrijving van de bug
+
+Beschrijf duidelijk wat er fout gaat.
+Wat werkt niet zoals verwacht?
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+## Huidig gedrag
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+Wat gebeurt er nu?
+Beschrijf zo concreet mogelijk het waargenomen gedrag.
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+---
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+## Verwacht gedrag
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+Wat zou er volgens jou moeten gebeuren?
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+---
 
-**Additional context**
-Add any other context about the problem here.
+## Stappen om te reproduceren
+
+1. Ga naar '...'
+2. Klik op '...'
+3. Vul in '...'
+4. Foutmelding / onverwacht gedrag verschijnt
+
+*Is dit probleem consistent reproduceerbaar?*
+- [ ] Ja
+- [ ] Nee
+- [ ] Soms
+
+---
+
+## Betrokken gebruiker(s)
+
+Welke rol ervaart dit probleem?
+- [ ] Controleur
+- [ ] Beheerder
+- [ ] Admin
+
+---
+
+## Impact & Ernst
+
+- Impact:
+  - [ ] Laag (cosmetisch / work-around mogelijk)
+  - [ ] Middel (beperkt gebruik)
+  - [ ] Hoog (blokkerend)
+
+---
+
+## Omgeving
+
+*(Vul alleen in wat van toepassing is)*
+
+**Desktop**
+- OS:
+- Browser:
+- Versie:
+
+**Mobiel**
+- Device:
+- OS:
+- Browser:
+- Versie:
+
+---
+
+## Screenshots / Logs
+
+Voeg screenshots, foutmeldingen, console errors of relevante logs toe.
+
+---
+
+## Technische context (optioneel)
+
+- URL / endpoint:
+- Record ID / object:
+- Tijdstip van optreden:
+- Eventuele foutmeldingen (Laravel / browser console):
+
+---
+
+## Aanvullende context
+
+Alles wat kan helpen bij het analyseren of reproduceren van het probleem.
