@@ -37,6 +37,7 @@ class AanmeldingController extends Controller
             'motivatie_tekst' => 'required|string',
             'motivatie_keuzes' => 'array',
             'ervaring_tekst' => 'nullable|string',
+            'extra_field' => 'nullable|string|max:0', // Honeypot field for spam prevention
         ]);
 
         // E-mail ontvangers configureren
