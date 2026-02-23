@@ -16,6 +16,12 @@ class ControleRonde extends Model
 {
     use HasFactory;
 
+    public const STATUS_CONCEPT = 'Concept';
+    public const STATUS_ACTIEF = 'Actief';
+    public const STATUS_AFGEROND = 'Afgerond';
+    public const STATUS_GEANNULEERD = 'Geannuleerd';
+    public const STATUS_DEMO = 'Demo';
+
     protected $fillable = [
         'user_id',
         'water_id',
@@ -52,5 +58,16 @@ class ControleRonde extends Model
     public function overtredingen()
     {
         return $this->hasMany(Overtreding::class);
+    }
+
+    public static function statuses(): array
+    {
+        return [
+            self::STATUS_CONCEPT,
+            self::STATUS_ACTIEF,
+            self::STATUS_AFGEROND,
+            self::STATUS_GEANNULEERD,
+            self::STATUS_DEMO,
+        ];
     }
 }

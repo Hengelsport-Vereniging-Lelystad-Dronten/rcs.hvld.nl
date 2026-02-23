@@ -13,14 +13,17 @@ const props = defineProps({
     overtredingTypes: { type: Array, required: true },
     strafmaten: { type: Array, required: true },
     constateringWijzes: { type: Array, required: true },
+    waters: { type: Array, required: true },
+    statusOptions: { type: Array, required: true },
 });
 
 const waterNaam = computed(() => props.ronde?.water?.naam || 'Onbekend water');
 const controllerNaam = computed(() => props.ronde?.user?.name || 'Onbekend');
 const overtredingen = computed(() => props.ronde?.overtredingen || []);
 
-const isActief = ref(props.ronde?.status === 'Actief');
+const isActief = computed(() => props.ronde?.status === 'Actief');
 const isDeleting = ref(false);
+const isEditingRonde = ref(false);
 
 const getLocalDateTime = () => {
     const now = new Date();
@@ -34,6 +37,13 @@ const afrondForm = useForm({
     eind_tijd: getLocalDateTime(),
 });
 
+const rondeForm = useForm({
+    water_id: props.ronde.water_id,
+    start_tijd: props.ronde.start_tijd ? new Date(props.ronde.start_tijd).toISOString().slice(0, 16) : getLocalDateTime(),
+    opmerkingen: props.ronde.opmerkingen || '',
+    status: props.ronde.status || 'Actief',
+});
+
 const onOvertredingSuccess = () => {
     router.reload({ only: ['ronde'] });
 };
@@ -41,7 +51,7 @@ const onOvertredingSuccess = () => {
 const sluitRondeAf = () => {
     afrondForm.put(route('controles.afronden', afrondForm.ronde_id), {
         onSuccess: () => {
-            isActief.value = false;
+            router.reload({ only: ['ronde'] });
         },
     });
 };
@@ -55,6 +65,26 @@ const annuleerRonde = () => {
             },
         });
     }
+};
+
+const bewerkRonde = () => {
+    isEditingRonde.value = true;
+};
+
+const annuleerBewerkRonde = () => {
+    isEditingRonde.value = false;
+    rondeForm.reset();
+    rondeForm.clearErrors();
+};
+
+const slaRondeOp = () => {
+    rondeForm.put(route('controles.update', props.ronde.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            isEditingRonde.value = false;
+            router.reload({ only: ['ronde'] });
+        },
+    });
 };
 </script>
 
@@ -74,7 +104,16 @@ const annuleerRonde = () => {
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-8 border-l-4 border-indigo-500">
-                    <h3 class="text-lg font-bold text-gray-900 mb-4">Ronde Overzicht</h3>
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-gray-900">Ronde Overzicht</h3>
+                        <button
+                            type="button"
+                            @click="bewerkRonde"
+                            class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded hover:bg-indigo-700"
+                        >
+                            Ronde Bewerken
+                        </button>
+                    </div>
                     <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                         <dt class="font-semibold text-gray-700">Water:</dt>
                         <dd>{{ waterNaam }}</dd>
@@ -87,7 +126,61 @@ const annuleerRonde = () => {
 
                         <dt class="font-semibold text-gray-700">Eind Tijd:</dt>
                         <dd>{{ ronde.eind_tijd ? new Date(ronde.eind_tijd).toLocaleString('nl-NL') : 'N.V.T.' }}</dd>
+                        <dt class="font-semibold text-gray-700">Status:</dt>
+                        <dd>{{ ronde.status }}</dd>
                     </dl>
+
+                    <form v-if="isEditingRonde" @submit.prevent="slaRondeOp" class="mt-6 p-4 border border-indigo-200 rounded-md bg-indigo-50 space-y-4">
+                        <div>
+                            <InputLabel for="edit_water_id" value="Water" />
+                            <select id="edit_water_id" v-model="rondeForm.water_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                                <option v-for="water in waters" :key="water.id" :value="water.id">
+                                    {{ water.naam }}
+                                </option>
+                            </select>
+                            <InputError :message="rondeForm.errors.water_id" class="mt-2" />
+                        </div>
+
+                        <div>
+                            <InputLabel for="edit_start_tijd" value="Starttijd" />
+                            <TextInput id="edit_start_tijd" type="datetime-local" v-model="rondeForm.start_tijd" class="mt-1 block w-full" />
+                            <InputError :message="rondeForm.errors.start_tijd" class="mt-2" />
+                        </div>
+
+                        <div>
+                            <InputLabel for="edit_status" value="Status" />
+                            <select id="edit_status" v-model="rondeForm.status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                                <option v-for="status in statusOptions" :key="status" :value="status">
+                                    {{ status }}
+                                </option>
+                            </select>
+                            <InputError :message="rondeForm.errors.status" class="mt-2" />
+                        </div>
+
+                        <div>
+                            <InputLabel for="edit_opmerkingen" value="Opmerkingen" />
+                            <textarea
+                                id="edit_opmerkingen"
+                                v-model="rondeForm.opmerkingen"
+                                rows="3"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                            ></textarea>
+                            <InputError :message="rondeForm.errors.opmerkingen" class="mt-2" />
+                        </div>
+
+                        <div class="flex gap-2">
+                            <PrimaryButton type="submit" :disabled="rondeForm.processing" class="bg-indigo-600 hover:bg-indigo-700">
+                                Opslaan
+                            </PrimaryButton>
+                            <button
+                                type="button"
+                                @click="annuleerBewerkRonde"
+                                class="inline-flex items-center px-3 py-2 bg-gray-200 text-gray-700 text-xs font-semibold rounded hover:bg-gray-300"
+                            >
+                                Annuleren
+                            </button>
+                        </div>
+                    </form>
                 </div>
 
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-8">

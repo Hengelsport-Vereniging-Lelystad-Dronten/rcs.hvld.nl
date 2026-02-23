@@ -27,6 +27,11 @@ class Overtreding extends Model
     protected $fillable = [
         'controle_ronde_id',
         'overtreding_type_id',
+        'locatie_details',
+        'geconstateerd_op',
+        'constatering_wijze',
+        'aanleiding',
+        'middel',
         'vispasnummer',
         'genomen_maatregel',
         'details',
@@ -38,6 +43,8 @@ class Overtreding extends Model
     ];
 
     protected $casts = [
+        'locatie_details' => 'array',
+        'geconstateerd_op' => 'datetime',
         'vispas_ingenomen' => 'boolean',
         'geannuleerd_op' => 'datetime',
     ];

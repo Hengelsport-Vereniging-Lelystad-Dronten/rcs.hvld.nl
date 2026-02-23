@@ -76,12 +76,12 @@ const getRoleClass = (role) => {
                     </div>
 
                     <!-- HEADERS: Alleen zichtbaar op desktop (md:) -->
-                    <!-- We gebruiken 5 kolommen voor Naam, E-mail, Rol, Laatste Login en Acties -->
+                    <!-- We gebruiken 5 kolommen voor Naam, E-mail, Rol, Laatste Activiteit en Acties -->
                     <div class="hidden md:grid grid-cols-5 gap-4 px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 rounded-t-lg">
                         <div class="col-span-1">Naam</div>
                         <div class="col-span-1">E-mail</div>
                         <div class="col-span-1">Rol</div>
-                        <div class="col-span-1">Laatste Login</div>
+                        <div class="col-span-1">Laatste Activiteit</div>
                         <div class="col-span-1 text-right">Acties</div>
                     </div>
 
@@ -116,9 +116,9 @@ const getRoleClass = (role) => {
                                     </span>
                                 </div>
 
-                                <!-- LAATSTE LOGIN (col-span-1 op md) -->
+                                <!-- LAATSTE ACTIVITEIT (col-span-1 op md) -->
                                 <div>
-                                    <p class="text-xs font-medium text-gray-500 uppercase mb-1 md:hidden">Laatste Login</p>
+                                    <p class="text-xs font-medium text-gray-500 uppercase mb-1 md:hidden">Laatste Activiteit</p>
                                     <span class="text-sm text-gray-700">
                                         {{ user.last_login_at ? new Date(user.last_login_at).toLocaleString('nl-NL') : '-' }}
                                     </span>

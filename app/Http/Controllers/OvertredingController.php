@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreOvertredingRequest;
 use App\Models\ControleRonde;
 use App\Models\Overtreding;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\VispasIngenomenMail;
 use App\Models\OvertredingType;
@@ -38,6 +39,14 @@ class OvertredingController extends Controller
         $ronde = ControleRonde::findOrFail($validated['controle_ronde_id']);
         
         if ($ronde->status !== 'Actief') {
+            activity()
+                ->performedOn($ronde)
+                ->withProperties([
+                    'controle_ronde_id' => $ronde->id,
+                    'status' => $ronde->status,
+                ])
+                ->log('Overtreding aanmaken geweigerd (ronde niet actief)');
+
             return redirect()->back()
                 ->with('error', 'Overtredingen kunnen alleen worden toegevoegd aan een actieve ronde.');
         }
@@ -54,6 +63,24 @@ class OvertredingController extends Controller
         $overtredingData['status'] = Overtreding::STATUS_ACTIEF;
 
         $overtreding = Overtreding::create($overtredingData);
+
+        activity()
+            ->performedOn($overtreding)
+            ->withProperties([
+                'new' => $overtreding->only([
+                    'controle_ronde_id',
+                    'overtreding_type_id',
+                    'geconstateerd_op',
+                    'constatering_wijze',
+                    'aanleiding',
+                    'middel',
+                    'vispasnummer',
+                    'genomen_maatregel',
+                    'vispas_ingenomen',
+                    'status',
+                ]),
+            ])
+            ->log('Overtreding aangemaakt');
 
         if ($overtreding->vispas_ingenomen) {
             $recipient = config('mail.vispas_ingenomen_recipient');
@@ -78,6 +105,11 @@ class OvertredingController extends Controller
 
         $validated = $request->validate([
             'overtreding_type_id' => 'required|exists:overtreding_types,id',
+            'geconstateerd_op' => 'nullable|date',
+            'locatie_details' => 'nullable|json',
+            'constatering_wijze' => 'nullable|string|max:100',
+            'aanleiding' => 'nullable|string|max:255',
+            'middel' => 'nullable|string|max:255',
             'vispasnummer' => 'nullable|string|max:50',
             'details' => 'nullable|string',
             'vispas_ingenomen' => 'nullable|boolean',
@@ -91,6 +123,11 @@ class OvertredingController extends Controller
 
         $oldData = $overtreding->only([
             'overtreding_type_id',
+            'geconstateerd_op',
+            'locatie_details',
+            'constatering_wijze',
+            'aanleiding',
+            'middel',
             'vispasnummer',
             'details',
             'vispas_ingenomen',
@@ -150,7 +187,13 @@ class OvertredingController extends Controller
         $isOwner = (int) $overtreding->controleRonde->user_id === (int) $user->id;
         $isBeheerder = method_exists($user, 'isBeheerder') && $user->isBeheerder();
 
-        abort_unless($isOwner || $isBeheerder, 403);
+        if (!$isOwner && !$isBeheerder) {
+            activity()
+                ->performedOn($overtreding)
+                ->withProperties(['attempted_by' => $user->id])
+                ->log('Overtreding mutatie geweigerd (geen rechten)');
+            abort(403);
+        }
     }
 
     private function determineMaatregel(int $overtredingTypeId, ?string $vispasnummer, ?int $excludeOvertredingId = null): string
