@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('nachtviszones', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('water_id')->constrained('waters')->onDelete('cascade');
-            $table->json('boundary'); // GeoJSON Geometry (Polygon/MultiPolygon)
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('nachtviszones')) {
+            Schema::create('nachtviszones', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('water_id')->constrained();
+                $table->json('boundary');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

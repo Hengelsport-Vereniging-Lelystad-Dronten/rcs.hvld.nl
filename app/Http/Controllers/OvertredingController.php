@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreOvertredingRequest;
 use App\Models\ControleRonde;
 use App\Models\Overtreding;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\VispasIngenomenMail;
 
@@ -26,19 +26,13 @@ class OvertredingController extends Controller
      * (standaard of recidive) en maakt de overtreding aan. Stuurt eventueel een notificatie
      * wanneer een vispas is ingenomen.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\StoreOvertredingRequest  $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request)
+    public function store(StoreOvertredingRequest $request)
     {
-        // 1. Validatie van de input
-        $validated = $request->validate([
-            'controle_ronde_id' => 'required|exists:controle_rondes,id',
-            'overtreding_type_id' => 'required|exists:overtreding_types,id',
-            'vispasnummer' => 'nullable|string|max:50',
-            'details' => 'nullable|string',
-            'vispas_ingenomen' => 'nullable|boolean',
-        ]);
+        // 1. Validatie is al afgehandeld door StoreOvertredingRequest
+        $validated = $request->validated();
 
         // 2. Controleer of de ronde actief is
         $ronde = ControleRonde::findOrFail($validated['controle_ronde_id']);
