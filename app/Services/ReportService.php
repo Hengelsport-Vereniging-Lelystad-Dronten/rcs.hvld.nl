@@ -58,7 +58,7 @@ class ReportService
      */
     private function getTotalOvertredingen(Carbon $startDate, Carbon $endDate): int
     {
-        return Overtreding::whereBetween('created_at', [$startDate, $endDate])->count();
+        return Overtreding::actief()->whereBetween('created_at', [$startDate, $endDate])->count();
     }
 
     /**
@@ -76,7 +76,7 @@ class ReportService
      */
     private function getTopOvertredingTypes(Carbon $startDate, Carbon $endDate): array
     {
-        return Overtreding::whereBetween('overtredingen.created_at', [$startDate, $endDate])
+        return Overtreding::actief()->whereBetween('overtredingen.created_at', [$startDate, $endDate])
             ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
             ->select('overtreding_types.code', 'overtreding_types.omschrijving', DB::raw('count(*) as count'))
             ->groupBy('overtreding_types.id', 'overtreding_types.code', 'overtreding_types.omschrijving')
@@ -123,7 +123,7 @@ class ReportService
      */
     private function getMaatregelBreakdown(Carbon $startDate, Carbon $endDate): array
     {
-        return Overtreding::whereBetween('overtredingen.created_at', [$startDate, $endDate])
+        return Overtreding::actief()->whereBetween('overtredingen.created_at', [$startDate, $endDate])
             ->select('genomen_maatregel', DB::raw('count(*) as count'))
             ->groupBy('genomen_maatregel')
             ->orderByDesc('count')
@@ -136,7 +136,7 @@ class ReportService
      */
     private function getRecidiveCount(Carbon $startDate, Carbon $endDate): int
     {
-        return Overtreding::whereBetween('overtredingen.created_at', [$startDate, $endDate])
+        return Overtreding::actief()->whereBetween('overtredingen.created_at', [$startDate, $endDate])
             ->whereNotNull('vispasnummer')
             ->select('vispasnummer', DB::raw('count(*) as occ'))
             ->groupBy('vispasnummer')
@@ -149,7 +149,7 @@ class ReportService
      */
     private function getVispasIngenomenCount(Carbon $startDate, Carbon $endDate): int
     {
-        return Overtreding::whereBetween('created_at', [$startDate, $endDate])
+        return Overtreding::actief()->whereBetween('created_at', [$startDate, $endDate])
             ->where('vispas_ingenomen', true)
             ->count();
     }

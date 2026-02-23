@@ -93,6 +93,8 @@ Route::middleware('auth')->group(function () {
     // OVERTREDINGEN (Alleen de store-actie)
     // Route voor het aanmaken van een nieuwe overtreding (POST) binnen een controleronde.
     Route::post('/overtredingen', [OvertredingController::class, 'store'])->name('overtredingen.store');
+    Route::put('/overtredingen/{overtreding}', [OvertredingController::class, 'update'])->name('overtredingen.update');
+    Route::put('/overtredingen/{overtreding}/annuleer', [OvertredingController::class, 'annuleer'])->name('overtredingen.annuleer');
 
     // CUSTOM ACTIE: SNEL WATER TOEVOEGEN
     // Route voor een snelle POST-actie om een nieuw water (locatie) toe te voegen vanuit de controle-flow.

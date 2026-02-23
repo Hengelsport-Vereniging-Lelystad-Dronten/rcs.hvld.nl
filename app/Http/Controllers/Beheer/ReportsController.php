@@ -26,6 +26,7 @@ class ReportsController extends Controller
         
         // Voor overtredingen moeten we joinen met rondes om op datum/user te filteren
         $violationsQuery = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id');
 
         // Filters toepassen op basis queries
@@ -51,6 +52,7 @@ class ReportsController extends Controller
 
         // 4. Statistieken per Water (Top 10)
         $byWater = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
             ->join('waters', 'controle_rondes.water_id', '=', 'waters.id')
             ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
@@ -65,6 +67,7 @@ class ReportsController extends Controller
 
         // 5. Statistieken per Type Overtreding (Top 10)
         $byType = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
             ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
             ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
@@ -88,6 +91,7 @@ class ReportsController extends Controller
             ->pluck('total', 'user_id');
 
         $violationsPerUser = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
             ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
             ->when($endDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '<=', $endDate))
@@ -117,6 +121,7 @@ class ReportsController extends Controller
         // 7. Recidive Gedrag (Top 10)
         // Zoek naar vispasnummers die meer dan 1x voorkomen in de gefilterde set
         $recidivism = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
             ->whereNotNull('vispasnummer')
             ->where('vispasnummer', '!=', '')
@@ -139,6 +144,7 @@ class ReportsController extends Controller
 
         // 8. Statistieken per Maand (Grafiek)
         $byMonth = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
             ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
             ->when($endDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '<=', $endDate))
@@ -184,6 +190,7 @@ class ReportsController extends Controller
     {
         // Haal alle overtredingen op voor dit vispasnummer, inclusief relaties
         $violations = Overtreding::with(['controleRonde.water', 'controleRonde.user', 'overtredingType'])
+            ->where('status', Overtreding::STATUS_ACTIEF)
             ->where('vispasnummer', $vispasnummer)
             ->orderByDesc('created_at')
             ->get()
@@ -209,6 +216,7 @@ class ReportsController extends Controller
     {
         // Haal data op (dezelfde query als hierboven, maar we houden de Eloquent models voor de Blade view)
         $violations = Overtreding::with(['controleRonde.water', 'controleRonde.user', 'overtredingType'])
+            ->where('status', Overtreding::STATUS_ACTIEF)
             ->where('vispasnummer', $vispasnummer)
             ->orderByDesc('created_at')
             ->get();
@@ -265,6 +273,7 @@ class ReportsController extends Controller
         // Queries (hergebruik logica van index)
         $roundsQuery = ControleRonde::query();
         $violationsQuery = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id');
 
         if ($startDate) {
@@ -285,6 +294,7 @@ class ReportsController extends Controller
         $activeControllers = $roundsQuery->distinct('user_id')->count('user_id');
 
         $byWater = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
             ->join('waters', 'controle_rondes.water_id', '=', 'waters.id')
             ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
@@ -297,6 +307,7 @@ class ReportsController extends Controller
             ->get();
 
         $byType = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
             ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
             ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
@@ -317,6 +328,7 @@ class ReportsController extends Controller
             ->pluck('total', 'user_id');
 
         $violationsPerUser = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
             ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
             ->when($endDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '<=', $endDate))
@@ -340,6 +352,7 @@ class ReportsController extends Controller
         })->sortByDesc('rounds')->values();
 
         $recidivism = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
             ->whereNotNull('vispasnummer')
             ->where('vispasnummer', '!=', '')

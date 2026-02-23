@@ -35,7 +35,9 @@ class Report extends Model
      */
     public function overtredingen()
     {
-        return Overtreding::whereBetween('created_at', [$this->period_start, $this->period_end])->get();
+        return Overtreding::actief()
+            ->whereBetween('created_at', [$this->period_start, $this->period_end])
+            ->get();
     }
 
     /**

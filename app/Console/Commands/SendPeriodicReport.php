@@ -72,7 +72,9 @@ class SendPeriodicReport extends Command
 
         // 2. Data verzamelen (Logica overgenomen van ReportsController)
         $roundsQuery = ControleRonde::query();
-        $violationsQuery = Overtreding::query()->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id');
+        $violationsQuery = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id');
 
         if ($startDate) {
             $roundsQuery->whereDate('start_tijd', '>=', $startDate);
@@ -88,6 +90,7 @@ class SendPeriodicReport extends Command
         $activeControllers = $roundsQuery->distinct('user_id')->count('user_id');
 
         $byWater = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
             ->join('waters', 'controle_rondes.water_id', '=', 'waters.id')
             ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
@@ -98,6 +101,7 @@ class SendPeriodicReport extends Command
             ->limit(10)->get();
 
         $byType = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
             ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
             ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
@@ -113,6 +117,7 @@ class SendPeriodicReport extends Command
             ->select('user_id', DB::raw('count(*) as total'))->groupBy('user_id')->pluck('total', 'user_id');
 
         $violationsPerUser = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
             ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
             ->when($endDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '<=', $endDate))
@@ -124,6 +129,7 @@ class SendPeriodicReport extends Command
         })->sortByDesc('rounds')->values();
 
         $recidivism = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
             ->whereNotNull('vispasnummer')->where('vispasnummer', '!=', '')
             ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))

@@ -86,7 +86,7 @@ class RecidiveCheckService
         ]);
 
         // 3. Zoek alle relevante eerdere overtredingen (de historie) met robuuste filtering
-        $query = Overtreding::where(function ($query) use ($vispasNummer) {
+        $query = Overtreding::actief()->where(function ($query) use ($vispasNummer) {
                 // De robuuste query-logica: Visser is recidivist als het vispasnummer matcht als string OF als integer.
                 
                 // PRIMAIRE VERGELIJKING: Zoek naar de exacte string (VARCHAR met voorloopnullen)
