@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ConstateringWijze; // NIEUW: Importeer de enum voor constateringwijzen
 use App\Models\ControleRonde;
-use App\Models\Water; // Nodig voor het startformulier
 use App\Models\OvertredingType; // NIEUW: Importeer het model
 use App\Models\Strafmaat; // NIEUW: Importeer het model voor de lijst met sancties
-use Illuminate\Http\Request;
+use App\Models\Water; // Nodig voor het startformulier
 use Inertia\Inertia;
+
 
 /**
  * Controller: ControleRondeController
@@ -54,7 +55,7 @@ class ControleRondeController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(\Illuminate\Http\Request $request)
     {
         // 1. Validatie
         $request->validate([
@@ -79,10 +80,9 @@ class ControleRondeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(ControleRonde $controle) // <-- HERNOEMD VAN $controleRonde NAAR $controle
+    public function show(ControleRonde $controle)
     {
-        // Gebruik nu $controle overal in de methode body
-        $controle->load(['user', 'water', 'overtredingen.overtredingType']); 
+        $controle->load(['user', 'water', 'overtredingen.overtredingType']);
 
         // 1. Haal de lijst met Overtreding Types op, inclusief de Foreign Key voor de standaard strafmaat.
         $overtredingTypes = OvertredingType::with('defaultStrafmaat', 'recidiveStrafmaat')
@@ -95,10 +95,13 @@ class ControleRondeController extends Controller
                                 ->get();
         
         return Inertia::render('ControleRondes/Show', [
-            'ronde' => $controle, // Let op: $controle wordt als 'ronde' meegegeven aan Vue
+            'ronde' => $controle,
             // Nodig voor het formulier om een overtreding toe te voegen
             'overtredingTypes' => $overtredingTypes,
             'strafmaten' => $strafmaten, // <--- OPLOSSING VOOR DE TYPEERROR: De lijst is nu beschikbaar in Vue.
+
+            // Nodig voor het formulier om een overtreding toe te voegen
+            'constateringWijzes' => ConstateringWijze::values(),
         ]);
     }
 
@@ -113,7 +116,7 @@ class ControleRondeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(\Illuminate\Http\Request $request, string $id)
     {
         //
     }
@@ -125,7 +128,7 @@ class ControleRondeController extends Controller
     public function destroy(ControleRonde $controle)
     {
         // Verwijder eerst eventueel gerelateerde overtredingen (indien geen cascade in DB)
-        $controle->overtredingen()->delete(); 
+        $controle->overtredingen()->delete();
 
         // Verwijder de ronde zelf
         $controle->delete();
@@ -138,7 +141,7 @@ class ControleRondeController extends Controller
     /**
      * CUSTOM ACTIE: Sluit een actieve ronde af, stelt de eindtijd vast en de status op 'Afgerond'.
      */
-    public function afronden(Request $request, ControleRonde $controleRonde)
+    public function afronden(\Illuminate\Http\Request $request, ControleRonde $controleRonde)
     {
         // 1. Validatie (alleen opmerkingen zijn optioneel)
         $request->validate([

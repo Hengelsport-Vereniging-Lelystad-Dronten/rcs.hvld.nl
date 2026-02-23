@@ -11,14 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('waters', function (Blueprint $table) {
-            // Boolean flag om aan te geven of het water verboden is
-            $table->boolean('is_verboden')->default(false)->after('boundary');
-            
-            // Optionele koppeling naar een standaard overtredingstype (bijv. code 10)
-            // Dit wordt voorgeselecteerd bij het registreren van een overtreding op dit water.
-            $table->foreignId('default_overtreding_type_id')->nullable()->after('is_verboden')->constrained('overtreding_types')->nullOnDelete();
-        });
+        if (!Schema::hasColumn('waters', 'is_verboden')) {
+            Schema::table('waters', function (Blueprint $table) {
+                // Boolean flag om aan te geven of het water verboden is
+                $table->boolean('is_verboden')->default(false)->after('boundary');
+                
+                // Optionele koppeling naar een standaard overtredingstype (bijv. code 10)
+                // Dit wordt voorgeselecteerd bij het registreren van een overtreding op dit water.
+                $table->foreignId('default_overtreding_type_id')->nullable()->after('is_verboden')->constrained('overtreding_types')->nullOnDelete();
+            });
+
+        }
+
     }
 
     /**

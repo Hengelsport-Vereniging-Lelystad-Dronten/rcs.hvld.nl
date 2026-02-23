@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('waters', function (Blueprint $table) {
-            // We gebruiken 'json' voor flexibele opslag van GeoJSON data.
-            // Nullable omdat niet elk water direct een grens hoeft te hebben.
-            $table->json('boundary')->nullable()->after('beschrijving');
+            if (!Schema::hasColumn('waters', 'boundary')) {
+                $table->json('boundary')->nullable()->after('beschrijving');
+            }
         });
     }
 
