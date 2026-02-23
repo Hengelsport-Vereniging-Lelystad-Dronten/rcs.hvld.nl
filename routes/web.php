@@ -12,6 +12,7 @@
  */
 
 
+use App\Http\Controllers\AanmeldingController;
 use App\Http\Controllers\ControleRondeController;
 use App\Http\Controllers\VisplannerController;
 use App\Http\Controllers\OvertredingController;
@@ -56,6 +57,11 @@ Route::get('/privacy', function () {
 Route::get('/security', function () {
     return Inertia::render('Security');
 })->name('security');
+
+// Aanmeldformulier Sportvisserijcontroleur
+Route::get('/aanmeldformulier', [AanmeldingController::class, 'create'])->name('aanmelden.create');
+Route::post('/aanmeldformulier', [AanmeldingController::class, 'store'])->name('aanmelden.store');
+Route::get('/aanmeldformulier/bedankt', [AanmeldingController::class, 'bedankt'])->name('aanmelden.bedankt');
 
 // --- GROEP 1: Basis en Functionele Routes voor ELKE ingelogde gebruiker ---
 // Deze groep combineert de basisfunctionaliteit (Dashboard/Profiel) en de
