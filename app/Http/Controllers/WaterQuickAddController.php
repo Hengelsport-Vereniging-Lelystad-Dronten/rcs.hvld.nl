@@ -38,6 +38,14 @@ class WaterQuickAddController extends Controller
         // 2. Creëer het water
         $water = Water::create($validated);
 
+        activity()
+            ->performedOn($water)
+            ->withProperties([
+                'new' => $water->only(['naam', 'type', 'beheersgebied', 'latitude', 'longitude']),
+                'source' => 'quick_add',
+            ])
+            ->log('Water snel toegevoegd');
+
         // 3. Stuur het nieuwe water object terug (nodig voor de dropdown in Vue)
         return response()->json([
             'water' => $water,

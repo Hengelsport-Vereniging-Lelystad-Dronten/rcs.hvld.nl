@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Model: Overtreding
@@ -16,15 +17,36 @@ class Overtreding extends Model
 {
     use HasFactory;
 
+    public const STATUS_ACTIEF = 'actief';
+    public const STATUS_GEANNULEERD = 'geannuleerd';
+    public const STATUS_CONCEPT = 'concept';
+    public const STATUS_DEMO = 'demo';
+
     protected $table = 'overtredingen';
 
     protected $fillable = [
         'controle_ronde_id',
         'overtreding_type_id',
+        'locatie_details',
+        'geconstateerd_op',
+        'constatering_wijze',
+        'aanleiding',
+        'middel',
         'vispasnummer',
         'genomen_maatregel',
         'details',
         'vispas_ingenomen',
+        'status',
+        'annulatie_reden',
+        'geannuleerd_door',
+        'geannuleerd_op',
+    ];
+
+    protected $casts = [
+        'locatie_details' => 'array',
+        'geconstateerd_op' => 'datetime',
+        'vispas_ingenomen' => 'boolean',
+        'geannuleerd_op' => 'datetime',
     ];
 
     /**
@@ -41,5 +63,15 @@ class Overtreding extends Model
     public function overtredingType()
     {
         return $this->belongsTo(OvertredingType::class);
+    }
+
+    public function geannuleerdDoor()
+    {
+        return $this->belongsTo(User::class, 'geannuleerd_door');
+    }
+
+    public function scopeActief(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_ACTIEF);
     }
 }
