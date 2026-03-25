@@ -67,7 +67,15 @@ import { Head, Link } from '@inertiajs/vue3';
                                 <p class="text-sm text-gray-500">Definieer en beheer de types overtredingen die tijdens controles vastgelegd kunnen worden.</p>
                             </div>
 
-                            <!-- 5. Periodieke Rapporten -->
+                            <!-- 5. Overlastmeldingen Beheer -->
+                            <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
+                                <Link :href="route('beheer.overlast-meldingen.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
+                                    🆘 Overlastmeldingen Beheer
+                                </Link>
+                                <p class="text-sm text-gray-500">Bekijken, filteren en verwerken van ingediende overlastmeldingen uit het publiek formulier.</p>
+                            </div>
+
+                            <!-- 6. Periodieke Rapporten -->
                             <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
                                 <Link :href="route('beheer.reports.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
                                     📊 Periodieke Rapporten
@@ -75,7 +83,7 @@ import { Head, Link } from '@inertiajs/vue3';
                                 <p class="text-sm text-gray-500">Genereer en bekijk wekelijks, maandelijks, en kwartaalrapporten met statistieken en analyses.</p>
                             </div>
 
-                            <!-- 6. Audit Log -->
+                            <!-- 7. Audit Log -->
                             <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
                                 <Link :href="route('beheer.auditlog.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
                                     📜 Audit Log

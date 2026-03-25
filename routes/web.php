@@ -25,8 +25,10 @@ use App\Http\Controllers\KaartController;
 use App\Http\Controllers\Beheer\AuditLogController;
 use App\Http\Controllers\Beheer\StrafmaatController;
 use App\Http\Controllers\Beheer\ReportsController;
-
+use App\Http\Controllers\Api\OverlastMeldingApiController;
+use App\Models\OverlastMelding;
 use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -57,6 +59,21 @@ Route::get('/privacy', function () {
 Route::get('/security', function () {
     return Inertia::render('Security');
 })->name('security');
+
+// Overlast Meldingen (Publiek meldformulier voor sportvisserij en dierenwelzijn)
+Route::prefix('/overlast-meldingen')->name('overlast-meldingen.')->group(function () {
+    // Formulier pagina
+    Route::get('/', function () {
+        return Inertia::render('OverlastMeldingen/Create', [
+            'categories' => \App\Models\OverlastMelding::categories(),
+        ]);
+    })->name('create');
+
+    // Bedankt pagina
+    Route::get('/bedankt', function () {
+        return Inertia::render('OverlastMeldingen/Bedankt');
+    })->name('bedankt');
+});
 
 // Aanmeldformulier Sportvisserijcontroleur
 Route::get('/aanmeldformulier', [AanmeldingController::class, 'create'])->name('aanmelden.create');
@@ -171,6 +188,53 @@ Route::middleware(['auth', 'beheerder'])->group(function () {
     // AUDIT LOG
     // Route voor het weergeven van het audit log.
     Route::get('/beheer/auditlog', [AuditLogController::class, 'index'])->name('beheer.auditlog.index');
+
+    /**
+     * OVERLAST MELDINGEN BEHEER
+     * 
+     * Beheerinterface voor meldingen over sportvisserij en dierenwelzijn.
+     * Beheerders kunnen meldingen inzien, filteren, status wijzigen en afwijzen.
+     */
+    Route::prefix('beheer/overlast-meldingen')->name('beheer.overlast-meldingen.')->group(function () {
+        // Overzicht van alle meldingen
+        Route::get('/', function (Request $request) {
+            $query = \App\Models\OverlastMelding::with('verwerktDoor')->latest();
+
+            // Optionele filter: status (nieuw, in_behandeling, afgehandeld, afgewezen)
+            if ($request->has('status') && in_array($request->get('status'), \App\Models\OverlastMelding::statuses())) {
+                $query->where('status', $request->get('status'));
+            }
+
+            // Optionele filter: categorie
+            if ($request->has('categorie') && in_array($request->get('categorie'), \App\Models\OverlastMelding::categories())) {
+                $query->where('categorie', $request->get('categorie'));
+            }
+
+            $perPage = min(max((int)$request->get('per_page', 15), 5), 100);
+            $meldingen = $query->paginate($perPage)->withQueryString();
+
+            return Inertia::render('Beheer/OverlastMeldingen/Index', [
+                'meldingen' => $meldingen,
+                'filters' => [
+                    'status' => $request->get('status', 'all'),
+                    'categorie' => $request->get('categorie', 'all'),
+                    'per_page' => $perPage,
+                ],
+            ]);
+        })->name('index');
+
+        // Detailpagina van melding
+        Route::get('{melding}', function (\App\Models\OverlastMelding $melding) {
+            return Inertia::render('Beheer/OverlastMeldingen/Show', [
+                'melding' => $melding->load('verwerktDoor'),
+            ]);
+        })->name('show');
+
+        // Status update via beheerwebroute (auth + beheerder middleware)
+        Route::patch('{melding}/status', function (Request $request, OverlastMelding $melding) {
+            return app(OverlastMeldingApiController::class)->updateStatus($request, $melding);
+        })->name('update-status');
+    });
 });
 
 
