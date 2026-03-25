@@ -4,7 +4,7 @@
 # ===================================================
 
 # Disable directory listings
-Options -Indexes
+Options -Indexes +FollowSymLinks
 
 # Force HTTPS (optional)
 <IfModule mod_rewrite.c>
@@ -19,7 +19,7 @@ Options -Indexes
 </FilesMatch>
 
 # Protect sensitive directories
-RedirectMatch 403 ^/(app|bootstrap|config|database|resources|routes|storage|tests|vendor)(/.*)?$
+RedirectMatch 403 ^/(app|bootstrap|config|database|resources|routes|tests|vendor)(/.*)?$
 
 
 <IfModule mod_rewrite.c>

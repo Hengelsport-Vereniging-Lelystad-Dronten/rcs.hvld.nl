@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div id="map" style="height: 400px;"></div>
+        <div :id="mapId" style="height: 400px;"></div>
     </div>
 </template>
 
@@ -37,12 +37,13 @@ const emit = defineEmits(['update:location']);
 let map = null;
 let marker = null;
 const defaultCenter = [52.5261545, 5.4729717]; // Lelystad
+const mapId = ref(`map-${Math.random().toString(36).substr(2, 9)}`);
 
 onMounted(() => {
     const initialLat = props.latitude ?? defaultCenter[0];
     const initialLng = props.longitude ?? defaultCenter[1];
 
-    map = L.map('map').setView([initialLat, initialLng], 13);
+    map = L.map(mapId.value).setView([initialLat, initialLng], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',

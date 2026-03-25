@@ -120,5 +120,6 @@ return [
     ],
 
     'vispas_ingenomen_recipient' => env('MAIL_VISPAS_INGENOMEN_RECIPIENT'),
+    'overlast_melding_recipient' => env('MAIL_OVERLAST_MELDING_RECIPIENT'),
 
 ];
