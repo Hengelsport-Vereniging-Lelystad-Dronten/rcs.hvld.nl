@@ -63,12 +63,16 @@
     <!-- KPI's -->
     <div style="margin-bottom: 30px;">
         <div class="kpi-box">
-            <span class="kpi-label">Totaal Controles</span>
-            <span class="kpi-value">{{ $totals['rounds'] }}</span>
+            <span class="kpi-label">Gecontroleerde vissers</span>
+            <span class="kpi-value">{{ $totals['checked_fishermen'] }}</span>
         </div>
         <div class="kpi-box">
             <span class="kpi-label">Totaal Overtredingen</span>
             <span class="kpi-value">{{ $totals['violations'] }}</span>
+        </div>
+        <div class="kpi-box">
+            <span class="kpi-label">Controles zonder overtreding</span>
+            <span class="kpi-value">{{ $totals['no_violations'] }}</span>
         </div>
         <div class="kpi-box">
             <span class="kpi-label">Actieve Controleurs</span>

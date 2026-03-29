@@ -71,27 +71,52 @@ class SendPeriodicReport extends Command
         $this->info("Rapport genereren voor: $startDate t/m $endDate");
 
         // 2. Data verzamelen (Logica overgenomen van ReportsController)
-        $roundsQuery = ControleRonde::query();
+        $roundsQuery = ControleRonde::query()
+            ->where('status', 'Afgerond');
+        $checksQuery = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'Afgerond');
+
         $violationsQuery = Overtreding::query()
             ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
-            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id');
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'Afgerond')
+            ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
+            ->where('overtreding_types.code', '<>', '00');
+
+        $noViolationsQuery = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'Afgerond')
+            ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
+            ->where('overtreding_types.code', '00');
 
         if ($startDate) {
             $roundsQuery->whereDate('start_tijd', '>=', $startDate);
+            $checksQuery->whereDate('controle_rondes.start_tijd', '>=', $startDate);
             $violationsQuery->whereDate('controle_rondes.start_tijd', '>=', $startDate);
+            $noViolationsQuery->whereDate('controle_rondes.start_tijd', '>=', $startDate);
         }
         if ($endDate) {
             $roundsQuery->whereDate('start_tijd', '<=', $endDate);
+            $checksQuery->whereDate('controle_rondes.start_tijd', '<=', $endDate);
             $violationsQuery->whereDate('controle_rondes.start_tijd', '<=', $endDate);
+            $noViolationsQuery->whereDate('controle_rondes.start_tijd', '<=', $endDate);
         }
 
         $totalRounds = $roundsQuery->count();
+        $totalCheckedFishermen = $checksQuery->count();
         $totalViolations = $violationsQuery->count();
+        $totalNoViolations = $noViolationsQuery->count();
         $activeControllers = $roundsQuery->distinct('user_id')->count('user_id');
 
         $byWater = Overtreding::query()
             ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'Afgerond')
+            ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
+            ->where('overtreding_types.code', '<>', '00')
             ->join('waters', 'controle_rondes.water_id', '=', 'waters.id')
             ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
             ->when($endDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '<=', $endDate))
@@ -103,7 +128,9 @@ class SendPeriodicReport extends Command
         $byType = Overtreding::query()
             ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'Afgerond')
             ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
+            ->where('overtreding_types.code', '<>', '00')
             ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
             ->when($endDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '<=', $endDate))
             ->select('overtreding_types.code', 'overtreding_types.omschrijving as description', DB::raw('count(*) as count'))
@@ -119,6 +146,9 @@ class SendPeriodicReport extends Command
         $violationsPerUser = Overtreding::query()
             ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'Afgerond')
+            ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
+            ->where('overtreding_types.code', '<>', '00')
             ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
             ->when($endDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '<=', $endDate))
             ->select('controle_rondes.user_id', DB::raw('count(*) as total'))->groupBy('controle_rondes.user_id')->pluck('total', 'user_id');
@@ -131,6 +161,9 @@ class SendPeriodicReport extends Command
         $recidivism = Overtreding::query()
             ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'Afgerond')
+            ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
+            ->where('overtreding_types.code', '<>', '00')
             ->whereNotNull('vispasnummer')->where('vispasnummer', '!=', '')
             ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
             ->when($endDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '<=', $endDate))
@@ -139,7 +172,21 @@ class SendPeriodicReport extends Command
             ->map(fn($item) => ['vispasnummer' => $item->vispasnummer, 'count' => $item->count, 'last_violation_date' => \Carbon\Carbon::parse($item->last_violation_date)->format('d-m-Y H:i')]);
 
         // 3. PDF Genereren
-        $pdf = Pdf::loadView('pdf.report', ['totals' => ['rounds' => $totalRounds, 'violations' => $totalViolations, 'active_controllers' => $activeControllers], 'byWater' => $byWater, 'byType' => $byType, 'byController' => $byController, 'recidivism' => $recidivism, 'filters' => ['start_date' => $startDate, 'end_date' => $endDate, 'user_name' => 'Automatische Rapportage'], 'generated_at' => now()->format('d-m-Y H:i')]);
+        $pdf = Pdf::loadView('pdf.report', [
+            'totals' => [
+                'checked_fishermen' => $totalCheckedFishermen,
+                'violations' => $totalViolations,
+                'no_violations' => $totalNoViolations,
+                'rounds' => $totalRounds,
+                'active_controllers' => $activeControllers,
+            ],
+            'byWater' => $byWater,
+            'byType' => $byType,
+            'byController' => $byController,
+            'recidivism' => $recidivism,
+            'filters' => ['start_date' => $startDate, 'end_date' => $endDate, 'user_name' => 'Automatische Rapportage'],
+            'generated_at' => now()->format('d-m-Y H:i'),
+        ]);
 
         // 4. Email Versturen
         Mail::send([], [], function ($message) use ($email, $pdf, $period, $startDate, $endDate) {

@@ -23,12 +23,20 @@ class DashboardController extends Controller
     public function index()
     {
         // 1. KPI's ophalen
-        $totalOvertredingen = Overtreding::actief()->count();
+        $totalOvertredingen = Overtreding::actief()
+            ->whereHas('overtredingType', function ($query) {
+                $query->where('code', '<>', '00');
+            })
+            ->count();
         $activeRondes = ControleRonde::where('status', 'Actief')->count();
         $totalControleuren = User::where('actief', true)->count();
 
         // 2. Meest voorkomende overtreding (Top 1)
-        $topOvertreding = Overtreding::actief()->select('overtreding_type_id', DB::raw('count(*) as count'))
+        $topOvertreding = Overtreding::actief()
+            ->whereHas('overtredingType', function ($query) {
+                $query->where('code', '<>', '00');
+            })
+            ->select('overtreding_type_id', DB::raw('count(*) as count'))
             ->groupBy('overtreding_type_id')
             ->orderByDesc('count')
             ->with('overtredingType') // Laad de relatie om de omschrijving te krijgen

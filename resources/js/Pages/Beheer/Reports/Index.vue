@@ -10,7 +10,7 @@ const props = defineProps({
     // Global totals
     totals: {
         type: Object,
-        default: () => ({ violations: 0, rounds: 0, active_controllers: 0 })
+        default: () => ({ checked_fishermen: 0, violations: 0, no_violations: 0, rounds: 0, active_controllers: 0 })
     },
     // Data lists
     byWater: {
@@ -124,14 +124,18 @@ const maxMonthCount = computed(() => {
                 </div>
 
                 <!-- KPI Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-blue-500">
-                        <div class="text-gray-500 text-sm font-medium uppercase">Totaal Controles</div>
-                        <div class="text-3xl font-bold text-gray-900 mt-1">{{ totals.rounds }}</div>
+                        <div class="text-gray-500 text-sm font-medium uppercase">Gecontroleerde vissers</div>
+                        <div class="text-3xl font-bold text-gray-900 mt-1">{{ totals.checked_fishermen }}</div>
                     </div>
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-red-500">
                         <div class="text-gray-500 text-sm font-medium uppercase">Totaal Overtredingen</div>
                         <div class="text-3xl font-bold text-gray-900 mt-1">{{ totals.violations }}</div>
+                    </div>
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-yellow-500">
+                        <div class="text-gray-500 text-sm font-medium uppercase">Controles zonder overtreding</div>
+                        <div class="text-3xl font-bold text-gray-900 mt-1">{{ totals.no_violations }}</div>
                     </div>
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-green-500">
                         <div class="text-gray-500 text-sm font-medium uppercase">Actieve Controleurs</div>
