@@ -18,13 +18,6 @@ const formatDate = (dateString) => {
         minute: '2-digit'
     });
 };
-
-const formatFileSize = (bytes) => {
-    if (!bytes) return 'Onbekend';
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
-};
 </script>
 
 <template>
@@ -84,36 +77,36 @@ const formatFileSize = (bytes) => {
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
-                                    <tr v-for="export in exports.data" :key="export.id" class="hover:bg-gray-50">
+                                    <tr v-for="exportItem in exports.data" :key="exportItem.id" class="hover:bg-gray-50">
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-medium text-gray-900">{{ export.original_filename }}</div>
-                                            <div class="text-sm text-gray-500">{{ formatFileSize(0) }}</div>
+                                            <div class="text-sm font-medium text-gray-900">{{ exportItem.original_filename }}</div>
+                                            <div class="text-sm text-gray-500">PDF Document</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                {{ export.export_type }}
+                                                {{ exportItem.export_type }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ export.record_count }}
+                                            {{ exportItem.record_count }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ formatDate(export.created_at) }}
+                                            {{ formatDate(exportItem.created_at) }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ export.creator?.name || 'Onbekend' }}
+                                            {{ exportItem.creator?.name || 'Onbekend' }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span
                                                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                                                :class="export.downloaded_at ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'"
+                                                :class="exportItem.downloaded_at ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'"
                                             >
-                                                {{ export.downloaded_at ? 'Gedownload' : 'Nieuw' }}
+                                                {{ exportItem.downloaded_at ? 'Gedownload' : 'Nieuw' }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <a
-                                                :href="`/beheer/exports/${export.id}/download`"
+                                                :href="`/beheer/exports/${exportItem.id}/download`"
                                                 class="text-blue-600 hover:text-blue-900"
                                                 target="_blank"
                                             >
