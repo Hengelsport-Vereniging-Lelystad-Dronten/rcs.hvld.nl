@@ -42,7 +42,9 @@ class ReportService
     private function aggregateData(Carbon $startDate, Carbon $endDate): array
     {
         return [
+            'total_checked_fishermen' => $this->getTotalCheckedFishermen($startDate, $endDate),
             'total_overtredingen' => $this->getTotalOvertredingen($startDate, $endDate),
+            'total_no_violations' => $this->getTotalNoViolations($startDate, $endDate),
             'total_rondes' => $this->getTotalRondes($startDate, $endDate),
             'top_overtredingTypes' => $this->getTopOvertredingTypes($startDate, $endDate),
             'top_controleurs' => $this->getTopControleurs($startDate, $endDate),
@@ -54,11 +56,43 @@ class ReportService
     }
 
     /**
-     * Totaal aantal overtredingen in periode.
+     * Totaal aantal gecontroleerde vissers in periode.
+     */
+    private function getTotalCheckedFishermen(Carbon $startDate, Carbon $endDate): int
+    {
+        return Overtreding::actief()
+            ->whereBetween('overtredingen.created_at', [$startDate, $endDate])
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'afgerond')
+            ->count();
+    }
+
+    /**
+     * Totaal aantal overtredingen in periode (alleen echte overtredingen).
      */
     private function getTotalOvertredingen(Carbon $startDate, Carbon $endDate): int
     {
-        return Overtreding::actief()->whereBetween('created_at', [$startDate, $endDate])->count();
+        return Overtreding::actief()
+            ->whereBetween('overtredingen.created_at', [$startDate, $endDate])
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'afgerond')
+            ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
+            ->where('overtreding_types.code', '<>', '00')
+            ->count();
+    }
+
+    /**
+     * Totaal aantal controles zonder overtreding in periode.
+     */
+    private function getTotalNoViolations(Carbon $startDate, Carbon $endDate): int
+    {
+        return Overtreding::actief()
+            ->whereBetween('overtredingen.created_at', [$startDate, $endDate])
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'afgerond')
+            ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
+            ->where('overtreding_types.code', '00')
+            ->count();
     }
 
     /**
@@ -76,8 +110,12 @@ class ReportService
      */
     private function getTopOvertredingTypes(Carbon $startDate, Carbon $endDate): array
     {
-        return Overtreding::actief()->whereBetween('overtredingen.created_at', [$startDate, $endDate])
+        return Overtreding::actief()
+            ->whereBetween('overtredingen.created_at', [$startDate, $endDate])
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'afgerond')
             ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
+            ->where('overtreding_types.code', '<>', '00')
             ->select('overtreding_types.code', 'overtreding_types.omschrijving', DB::raw('count(*) as count'))
             ->groupBy('overtreding_types.id', 'overtreding_types.code', 'overtreding_types.omschrijving')
             ->orderByDesc('count')
@@ -123,7 +161,12 @@ class ReportService
      */
     private function getMaatregelBreakdown(Carbon $startDate, Carbon $endDate): array
     {
-        return Overtreding::actief()->whereBetween('overtredingen.created_at', [$startDate, $endDate])
+        return Overtreding::actief()
+            ->whereBetween('overtredingen.created_at', [$startDate, $endDate])
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'afgerond')
+            ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
+            ->where('overtreding_types.code', '<>', '00')
             ->select('genomen_maatregel', DB::raw('count(*) as count'))
             ->groupBy('genomen_maatregel')
             ->orderByDesc('count')
@@ -136,7 +179,12 @@ class ReportService
      */
     private function getRecidiveCount(Carbon $startDate, Carbon $endDate): int
     {
-        return Overtreding::actief()->whereBetween('overtredingen.created_at', [$startDate, $endDate])
+        return Overtreding::actief()
+            ->whereBetween('overtredingen.created_at', [$startDate, $endDate])
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'afgerond')
+            ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
+            ->where('overtreding_types.code', '<>', '00')
             ->whereNotNull('vispasnummer')
             ->select('vispasnummer', DB::raw('count(*) as occ'))
             ->groupBy('vispasnummer')
@@ -149,7 +197,10 @@ class ReportService
      */
     private function getVispasIngenomenCount(Carbon $startDate, Carbon $endDate): int
     {
-        return Overtreding::actief()->whereBetween('created_at', [$startDate, $endDate])
+        return Overtreding::actief()
+            ->whereBetween('overtredingen.created_at', [$startDate, $endDate])
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'afgerond')
             ->where('vispas_ingenomen', true)
             ->count();
     }

@@ -77,10 +77,20 @@ const deleteReport = () => {
                 </div>
 
                 <!-- Samenvattingsstatistieken -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                        <p class="text-sm text-gray-600">Gecontroleerde vissers</p>
+                        <p class="text-3xl font-bold text-blue-600">{{ props.report.data_summary.total_checked_fishermen ?? 0 }}</p>
+                    </div>
+
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <p class="text-sm text-gray-600">Totaal Overtredingen</p>
                         <p class="text-3xl font-bold text-red-600">{{ props.report.data_summary.total_overtredingen }}</p>
+                    </div>
+
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                        <p class="text-sm text-gray-600">Controles zonder overtreding</p>
+                        <p class="text-3xl font-bold text-yellow-600">{{ props.report.data_summary.total_no_violations ?? 0 }}</p>
                     </div>
 
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">

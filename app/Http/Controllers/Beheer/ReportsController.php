@@ -21,11 +21,15 @@ class ReportsController extends Controller
         $userId = $request->input('user_id');
 
         // 2. Basis Queries voor totalen
-        // We bouwen queries op die we later uitvoeren, afhankelijk van filters
+        // We bouwen queries op die we later uitvoeren, afhankelijk van filters.
         $roundsQuery = ControleRonde::query()
             ->where('status', 'Afgerond');
-        
-        // Voor overtredingen moeten we joinen met rondes om op datum/user te filteren
+
+        $checksQuery = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'Afgerond');
+
         $violationsQuery = Overtreding::query()
             ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
@@ -33,23 +37,39 @@ class ReportsController extends Controller
             ->where('controle_rondes.status', 'Afgerond')
             ->where('overtreding_types.code', '<>', '00');
 
+        $noViolationsQuery = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
+            ->where('controle_rondes.status', 'Afgerond')
+            ->where('overtreding_types.code', '00');
+
         // Filters toepassen op basis queries
         if ($startDate) {
             $roundsQuery->whereDate('start_tijd', '>=', $startDate);
+            $checksQuery->whereDate('controle_rondes.start_tijd', '>=', $startDate);
             $violationsQuery->whereDate('controle_rondes.start_tijd', '>=', $startDate);
+            $noViolationsQuery->whereDate('controle_rondes.start_tijd', '>=', $startDate);
         }
         if ($endDate) {
             $roundsQuery->whereDate('start_tijd', '<=', $endDate);
+            $checksQuery->whereDate('controle_rondes.start_tijd', '<=', $endDate);
             $violationsQuery->whereDate('controle_rondes.start_tijd', '<=', $endDate);
+            $noViolationsQuery->whereDate('controle_rondes.start_tijd', '<=', $endDate);
         }
         if ($userId) {
             $roundsQuery->where('user_id', $userId);
+            $checksQuery->where('controle_rondes.user_id', $userId);
             $violationsQuery->where('controle_rondes.user_id', $userId);
+            $noViolationsQuery->where('controle_rondes.user_id', $userId);
         }
 
         // 3. KPI Totalen berekenen
         $totalRounds = $roundsQuery->count();
+        $totalCheckedFishermen = $checksQuery->count();
         $totalViolations = $violationsQuery->count();
+        $totalNoViolations = $noViolationsQuery->count();
+
         // Aantal unieke controleurs die in deze periode actief waren
         $activeControllers = $roundsQuery->distinct('user_id')->count('user_id');
 
@@ -188,7 +208,9 @@ class ReportsController extends Controller
         return Inertia::render('Beheer/Reports/Index', [
             'totals' => [
                 'rounds' => $totalRounds,
+                'checked_fishermen' => $totalCheckedFishermen,
                 'violations' => $totalViolations,
+                'no_violations' => $totalNoViolations,
                 'active_controllers' => $activeControllers,
             ],
             'byWater' => $byWater,
@@ -294,6 +316,12 @@ class ReportsController extends Controller
         // Queries (hergebruik logica van index)
         $roundsQuery = ControleRonde::query()
             ->where('status', 'Afgerond');
+
+        $checksQuery = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'Afgerond');
+
         $violationsQuery = Overtreding::query()
             ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
@@ -301,21 +329,36 @@ class ReportsController extends Controller
             ->where('controle_rondes.status', 'Afgerond')
             ->where('overtreding_types.code', '<>', '00');
 
+        $noViolationsQuery = Overtreding::query()
+            ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
+            ->where('controle_rondes.status', 'Afgerond')
+            ->where('overtreding_types.code', '00');
+
         if ($startDate) {
             $roundsQuery->whereDate('start_tijd', '>=', $startDate);
+            $checksQuery->whereDate('controle_rondes.start_tijd', '>=', $startDate);
             $violationsQuery->whereDate('controle_rondes.start_tijd', '>=', $startDate);
+            $noViolationsQuery->whereDate('controle_rondes.start_tijd', '>=', $startDate);
         }
         if ($endDate) {
             $roundsQuery->whereDate('start_tijd', '<=', $endDate);
+            $checksQuery->whereDate('controle_rondes.start_tijd', '<=', $endDate);
             $violationsQuery->whereDate('controle_rondes.start_tijd', '<=', $endDate);
+            $noViolationsQuery->whereDate('controle_rondes.start_tijd', '<=', $endDate);
         }
         if ($userId) {
             $roundsQuery->where('user_id', $userId);
+            $checksQuery->where('controle_rondes.user_id', $userId);
             $violationsQuery->where('controle_rondes.user_id', $userId);
+            $noViolationsQuery->where('controle_rondes.user_id', $userId);
         }
 
         $totalRounds = $roundsQuery->count();
+        $totalCheckedFishermen = $checksQuery->count();
         $totalViolations = $violationsQuery->count();
+        $totalNoViolations = $noViolationsQuery->count();
         $activeControllers = $roundsQuery->distinct('user_id')->count('user_id');
 
         $byWater = Overtreding::query()
