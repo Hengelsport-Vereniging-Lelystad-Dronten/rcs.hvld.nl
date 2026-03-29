@@ -91,7 +91,15 @@ import { Head, Link } from '@inertiajs/vue3';
                                 <p class="text-sm text-gray-500">Exporteer actieve overtredingen naar PDF voor externe partijen zoals Sportvisunie.</p>
                             </div>
 
-                            <!-- 8. Audit Log -->
+                            <!-- 8. Export Overzicht -->
+                            <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
+                                <Link :href="route('beheer.exports.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
+                                    📁 Export Overzicht
+                                </Link>
+                                <p class="text-sm text-gray-500">Bekijk en download alle eerder gegenereerde exports en rapporten.</p>
+                            </div>
+
+                            <!-- 9. Audit Log -->
                             <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
                                 <Link :href="route('beheer.auditlog.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
                                     📜 Audit Log

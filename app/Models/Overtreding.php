@@ -41,6 +41,7 @@ class Overtreding extends Model
         'geannuleerd_door',
         'geannuleerd_op',
         'exported_at',
+        'export_status',
     ];
 
     protected $casts = [
@@ -79,11 +80,24 @@ class Overtreding extends Model
 
     public function scopeNietGeexporteerd(Builder $query): Builder
     {
-        return $query->whereNull('exported_at');
+        return $query->whereNull('exported_at')
+                    ->where('export_status', 'wel_exporteren');
     }
 
     public function scopeGeexporteerd(Builder $query): Builder
     {
-        return $query->whereNotNull('exported_at');
+        return $query->whereNotNull('exported_at')
+                    ->where('export_status', 'wel_exporteren');
+    }
+
+    public function scopeExportStatus(Builder $query, string $status): Builder
+    {
+        return $query->where('export_status', $status);
+    }
+
+    public function scopeVoorExport(Builder $query): Builder
+    {
+        return $query->where('export_status', 'wel_exporteren')
+                    ->whereNull('exported_at');
     }
 }
