@@ -83,7 +83,15 @@ import { Head, Link } from '@inertiajs/vue3';
                                 <p class="text-sm text-gray-500">Genereer en bekijk wekelijks, maandelijks, en kwartaalrapporten met statistieken en analyses.</p>
                             </div>
 
-                            <!-- 7. Audit Log -->
+                            <!-- 7. Export Overtredingen -->
+                            <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
+                                <Link :href="route('beheer.export-overtredingen.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
+                                    📤 Export Overtredingen
+                                </Link>
+                                <p class="text-sm text-gray-500">Exporteer actieve overtredingen naar PDF voor externe partijen zoals Sportvisunie.</p>
+                            </div>
+
+                            <!-- 8. Audit Log -->
                             <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
                                 <Link :href="route('beheer.auditlog.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
                                     📜 Audit Log
