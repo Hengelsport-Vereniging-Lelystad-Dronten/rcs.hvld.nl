@@ -155,12 +155,32 @@ const updateExportStatus = async (overtredingId, newStatus) => {
 
 // Helper functies
 const formatDate = (dateString) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('nl-NL');
+    if (!dateString) {
+        return 'Geen datum';
+    }
+
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) {
+        return 'Geen datum';
+    }
+
+    return date.toLocaleDateString('nl-NL');
 };
 
 const getOvertredingTypeName = (overtreding) => {
-    return overtreding.overtreding_type?.naam || 'Onbekend';
+    if (!overtreding.overtreding_type) {
+        return 'Onbekend';
+    }
+
+    return overtreding.overtreding_type.omschrijving || overtreding.overtreding_type.code || 'Onbekend';
+};
+
+const getLocatieName = (locatieDetails) => {
+    if (!locatieDetails) {
+        return 'Geen locatie';
+    }
+
+    return locatieDetails.naam || locatieDetails.adres || locatieDetails.locatie_omschrijving || locatieDetails.omschrijving || 'Geen locatie';
 };
 </script>
 
@@ -315,16 +335,13 @@ const getOvertredingTypeName = (overtreding) => {
                                             >
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ new Date(overtreding.geconstateerd_op).toLocaleDateString('nl-NL') }}
+                                            {{ formatDate(overtreding.geconstateerd_op) }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ overtreding.overtreding_type ? overtreding.overtreding_type.code : 'N/A' }}
+                                            {{ getOvertredingTypeName(overtreding) }}
                                         </td>
                                         <td class="px-6 py-4 text-sm text-gray-900">
-                                            <div v-if="overtreding.locatie_details && overtreding.locatie_details.naam">
-                                                {{ overtreding.locatie_details.naam }}
-                                            </div>
-                                            <div v-else class="text-gray-500">Geen locatie</div>
+                                            {{ getLocatieName(overtreding.locatie_details) }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {{ overtreding.controle_ronde && overtreding.controle_ronde.user ? overtreding.controle_ronde.user.name : 'N/A' }}
