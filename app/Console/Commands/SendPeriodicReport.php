@@ -71,20 +71,24 @@ class SendPeriodicReport extends Command
         $this->info("Rapport genereren voor: $startDate t/m $endDate");
 
         // 2. Data verzamelen (Logica overgenomen van ReportsController)
-        $roundsQuery = ControleRonde::query();
+        $roundsQuery = ControleRonde::query()
+            ->where('status', 'Afgerond');
         $checksQuery = Overtreding::query()
             ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
-            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id');
+            ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'Afgerond');
 
         $violationsQuery = Overtreding::query()
             ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'Afgerond')
             ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
             ->where('overtreding_types.code', '<>', '00');
 
         $noViolationsQuery = Overtreding::query()
             ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'Afgerond')
             ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
             ->where('overtreding_types.code', '00');
 
@@ -110,6 +114,7 @@ class SendPeriodicReport extends Command
         $byWater = Overtreding::query()
             ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'Afgerond')
             ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
             ->where('overtreding_types.code', '<>', '00')
             ->join('waters', 'controle_rondes.water_id', '=', 'waters.id')
@@ -123,6 +128,7 @@ class SendPeriodicReport extends Command
         $byType = Overtreding::query()
             ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'Afgerond')
             ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
             ->where('overtreding_types.code', '<>', '00')
             ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
@@ -140,6 +146,9 @@ class SendPeriodicReport extends Command
         $violationsPerUser = Overtreding::query()
             ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'Afgerond')
+            ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
+            ->where('overtreding_types.code', '<>', '00')
             ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
             ->when($endDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '<=', $endDate))
             ->select('controle_rondes.user_id', DB::raw('count(*) as total'))->groupBy('controle_rondes.user_id')->pluck('total', 'user_id');
@@ -152,6 +161,7 @@ class SendPeriodicReport extends Command
         $recidivism = Overtreding::query()
             ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->where('controle_rondes.status', 'Afgerond')
             ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
             ->where('overtreding_types.code', '<>', '00')
             ->whereNotNull('vispasnummer')->where('vispasnummer', '!=', '')
