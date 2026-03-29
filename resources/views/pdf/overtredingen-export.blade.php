@@ -123,7 +123,7 @@
         @if($overtreding->details)
         <div class="field-group">
             <span class="field-label">Details:</span>
-            <span class="field-value">{{ $overtreding->details }}</span>
+            <span class="field-value">{!! nl2br(e($overtreding->details)) !!}</span>
         </div>
         @endif
     </div>
