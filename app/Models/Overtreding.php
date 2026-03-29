@@ -78,6 +78,20 @@ class Overtreding extends Model
         return $query->where('status', self::STATUS_ACTIEF);
     }
 
+    public function scopeWithoutType00(Builder $query): Builder
+    {
+        return $query->whereHas('overtredingType', function ($query) {
+            $query->where('code', '<>', '00');
+        });
+    }
+
+    public function scopeOnlyType00(Builder $query): Builder
+    {
+        return $query->whereHas('overtredingType', function ($query) {
+            $query->where('code', '00');
+        });
+    }
+
     public function scopeNietGeexporteerd(Builder $query): Builder
     {
         return $query->whereNull('exported_at')
