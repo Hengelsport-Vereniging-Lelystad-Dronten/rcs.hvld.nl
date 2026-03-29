@@ -212,8 +212,18 @@ Route::middleware(['auth', 'beheerder'])->group(function () {
             $query = \App\Models\OverlastMelding::with('verwerktDoor')->latest();
 
             // Optionele filter: status (nieuw, in_behandeling, afgehandeld, afgewezen)
-            if ($request->has('status') && in_array($request->get('status'), \App\Models\OverlastMelding::statuses())) {
-                $query->where('status', $request->get('status'));
+            if ($request->has('status')) {
+                if ($request->get('status') === 'all') {
+                    // Laat alle statussen zien wanneer expliciet gekozen.
+                } elseif (in_array($request->get('status'), \App\Models\OverlastMelding::statuses())) {
+                    $query->where('status', $request->get('status'));
+                } else {
+                    // Onbekende statusparameter wordt genegeerd en we vallen terug op de standaardweergave.
+                    $query->whereIn('status', [\App\Models\OverlastMelding::STATUS_NIEUW, \App\Models\OverlastMelding::STATUS_IN_BEHANDELING]);
+                }
+            } else {
+                // Standaard alleen nieuwe en in behandeling tonen
+                $query->whereIn('status', [\App\Models\OverlastMelding::STATUS_NIEUW, \App\Models\OverlastMelding::STATUS_IN_BEHANDELING]);
             }
 
             // Optionele filter: categorie

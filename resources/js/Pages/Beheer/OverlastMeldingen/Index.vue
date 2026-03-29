@@ -18,7 +18,7 @@ const selectedPerPage = ref(props.filters.per_page ?? 15);
 const statusTexts = {
     nieuw: 'Nieuw',
     in_behandeling: 'In behandeling',
-    verwerkt: 'Verwerkt',
+    afgehandeld: 'Afgehandeld',
     afgewezen: 'Afgewezen',
 };
 
@@ -65,7 +65,7 @@ const clearFilters = () => {
                                 <option value="all">Alle statussen</option>
                                 <option value="nieuw">Nieuw</option>
                                 <option value="in_behandeling">In behandeling</option>
-                                <option value="verwerkt">Verwerkt</option>
+                                <option value="afgehandeld">Afgehandeld</option>
                                 <option value="afgewezen">Afgewezen</option>
                             </select>
                             <select v-model="selectedCategorie" @change="applyFilters" class="border rounded px-2 py-1">
