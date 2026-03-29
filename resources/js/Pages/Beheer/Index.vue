@@ -24,89 +24,116 @@ import { Head, Link } from '@inertiajs/vue3';
                             <!-- Hier kan een knop worden toegevoegd indien nodig -->
                         </div>
 
-                        <!-- Compacte lijststructuur: py-2 en divide-y voor strakke rijen -->
-                        <div class="divide-y divide-gray-200 border-t border-gray-200">
-                            
-                            <!-- 1. Gebruikers Beheer -->
-                            <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
-                                <Link :href="route('beheer.users.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
-                                    🧑‍💻 Gebruikers Beheer
-                                </Link>
-                                <p class="text-sm text-gray-500">Aanmaken, bewerken en rollen toewijzen van controleurs en beheerders.</p>
-                            </div>
-                            
-                            <!-- 2. Wateren Beheer -->
-                            <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
-                                <Link :href="route('beheer.waters.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
-                                    💧 Wateren Beheer
-                                </Link>
-                                <p class="text-sm text-gray-500">Toevoegen en aanpassen van de viswateren in het RCS.</p>
-                            </div>
-                            
-                            <!-- 3. Strafmaten Beheer (NIEUW) -->
-                            <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
-                                <Link :href="route('beheer.strafmaten.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
-                                    ⚖️ Strafmaten Beheer
-                                </Link>
-                                <p class="text-sm text-gray-500">Definieer en beheer de sancties en strafmaten die bij overtredingen toegepast kunnen worden.</p>
+                        <div class="space-y-8 border-t border-gray-200 pt-4">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-3">Actieve taak</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                    <Link :href="route('beheer.overlast-meldingen.index')" class="block p-4 rounded-lg border border-red-200 hover:border-red-300 hover:bg-red-50 transition duration-150">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-2xl">🆘</span>
+                                            <div>
+                                                <h4 class="text-base font-semibold text-gray-900">Overlastmeldingen</h4>
+                                                <p class="text-sm text-gray-600">Behandel meldingen uit het publiek actief.</p>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                </div>
                             </div>
 
-                            <!-- 4. FAQ Beheer (NIEUW) -->
-                            <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
-                                <Link :href="route('beheer.faqs.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
-                                    ❓ FAQ Beheer
-                                </Link>
-                                <p class="text-sm text-gray-500">Beheer de veelgestelde vragen en antwoorden die zichtbaar zijn op de uitlegpagina.</p>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-3">Systeembeheer</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                    <Link :href="route('beheer.users.index')" class="block p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-gray-50 transition duration-150">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-2xl">🧑‍💻</span>
+                                            <div>
+                                                <h4 class="text-base font-semibold text-gray-900">Gebruikers</h4>
+                                                <p class="text-sm text-gray-600">Aanmaken, bewerken en rollen toewijzen.</p>
+                                            </div>
+                                        </div>
+                                    </Link>
+
+                                    <Link :href="route('beheer.waters.index')" class="block p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-gray-50 transition duration-150">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-2xl">💧</span>
+                                            <div>
+                                                <h4 class="text-base font-semibold text-gray-900">Wateren</h4>
+                                                <p class="text-sm text-gray-600">Beheer viswateren in het RCS.</p>
+                                            </div>
+                                        </div>
+                                    </Link>
+
+                                    <Link :href="route('beheer.overtreding_types.index')" class="block p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-gray-50 transition duration-150">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-2xl">🚨</span>
+                                            <div>
+                                                <h4 class="text-base font-semibold text-gray-900">Overtreding Types</h4>
+                                                <p class="text-sm text-gray-600">Beheer overtredingcodes.</p>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                </div>
                             </div>
 
-                            <!-- 4. Overtreding Types Beheer -->
-                            <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
-                                <Link :href="route('beheer.overtreding_types.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
-                                    🚨 Overtreding Types Beheer
-                                </Link>
-                                <p class="text-sm text-gray-500">Definieer en beheer de types overtredingen die tijdens controles vastgelegd kunnen worden.</p>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-3">Inhoud</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                    <Link :href="route('beheer.faqs.index')" class="block p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-gray-50 transition duration-150">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-2xl">❓</span>
+                                            <div>
+                                                <h4 class="text-base font-semibold text-gray-900">FAQ</h4>
+                                                <p class="text-sm text-gray-600">Beheer veelgestelde vragen.</p>
+                                            </div>
+                                        </div>
+                                    </Link>
+
+                                    <Link :href="route('beheer.auditlog.index')" class="block p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-gray-50 transition duration-150">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-2xl">📜</span>
+                                            <div>
+                                                <h4 class="text-base font-semibold text-gray-900">Audit Log</h4>
+                                                <p class="text-sm text-gray-600">Bekijk systeemacties.</p>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                </div>
                             </div>
 
-                            <!-- 5. Overlastmeldingen Beheer -->
-                            <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
-                                <Link :href="route('beheer.overlast-meldingen.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
-                                    🆘 Overlastmeldingen Beheer
-                                </Link>
-                                <p class="text-sm text-gray-500">Bekijken, filteren en verwerken van ingediende overlastmeldingen uit het publiek formulier.</p>
-                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-3">Rapportage & export</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                    <Link :href="route('beheer.reports.index')" class="block p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-gray-50 transition duration-150">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-2xl">📊</span>
+                                            <div>
+                                                <h4 class="text-base font-semibold text-gray-900">Rapporten</h4>
+                                                <p class="text-sm text-gray-600">Genereer statistieken.</p>
+                                            </div>
+                                        </div>
+                                    </Link>
 
-                            <!-- 6. Periodieke Rapporten -->
-                            <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
-                                <Link :href="route('beheer.reports.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
-                                    📊 Periodieke Rapporten
-                                </Link>
-                                <p class="text-sm text-gray-500">Genereer en bekijk wekelijks, maandelijks, en kwartaalrapporten met statistieken en analyses.</p>
-                            </div>
+                                    <Link :href="route('beheer.export-overtredingen.index')" class="block p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-gray-50 transition duration-150">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-2xl">📤</span>
+                                            <div>
+                                                <h4 class="text-base font-semibold text-gray-900">Export Overtredingen</h4>
+                                                <p class="text-sm text-gray-600">Maak export-PDF’s.</p>
+                                            </div>
+                                        </div>
+                                    </Link>
 
-                            <!-- 7. Export Overtredingen -->
-                            <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
-                                <Link :href="route('beheer.export-overtredingen.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
-                                    📤 Export Overtredingen
-                                </Link>
-                                <p class="text-sm text-gray-500">Exporteer actieve overtredingen naar PDF voor externe partijen zoals Sportvisunie.</p>
+                                    <Link :href="route('beheer.exports.index')" class="block p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-gray-50 transition duration-150">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-2xl">📁</span>
+                                            <div>
+                                                <h4 class="text-base font-semibold text-gray-900">Export Overzicht</h4>
+                                                <p class="text-sm text-gray-600">Bekijk eerdere exports.</p>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                </div>
                             </div>
-
-                            <!-- 8. Export Overzicht -->
-                            <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
-                                <Link :href="route('beheer.exports.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
-                                    📁 Export Overzicht
-                                </Link>
-                                <p class="text-sm text-gray-500">Bekijk en download alle eerder gegenereerde exports en rapporten.</p>
-                            </div>
-
-                            <!-- 9. Audit Log -->
-                            <div class="py-2 px-4 hover:bg-gray-50 transition duration-150 cursor-pointer">
-                                <Link :href="route('beheer.auditlog.index')" class="text-blue-600 hover:text-blue-800 font-bold text-base block">
-                                    📜 Audit Log
-                                </Link>
-                                <p class="text-sm text-gray-500">Bekijk een read-only log van alle belangrijke acties die in het systeem zijn uitgevoerd.</p>
-                            </div>
-
                         </div>
                     </div>
                 </div>
