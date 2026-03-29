@@ -172,6 +172,10 @@ const getOvertredingTypeName = (overtreding) => {
         return 'Onbekend';
     }
 
+    if (overtreding.overtreding_type.code === '00') {
+        return 'Melding (geen overtreding)';
+    }
+
     return overtreding.overtreding_type.omschrijving || overtreding.overtreding_type.code || 'Onbekend';
 };
 
