@@ -153,7 +153,7 @@ Route::middleware(['auth', 'beheerder'])->group(function () {
     // EXPORT OVERTREDINGEN
     Route::get('beheer/export-overtredingen', [App\Http\Controllers\BeheerController::class, 'exportOvertredingenIndex'])->name('beheer.export-overtredingen.index');
     Route::post('beheer/export-overtredingen/preview', [App\Http\Controllers\BeheerController::class, 'exportOvertredingenPreview'])->name('beheer.export-overtredingen.preview');
-    Route::get('beheer/export-overtredingen/pdf', [App\Http\Controllers\BeheerController::class, 'exportOvertredingenPdf'])->name('beheer.export-overtredingen.pdf');
+    Route::match(['get', 'post'], 'beheer/export-overtredingen/pdf', [App\Http\Controllers\BeheerController::class, 'exportOvertredingenPdf'])->name('beheer.export-overtredingen.pdf');
     Route::post('beheer/export-overtredingen/reset', [App\Http\Controllers\BeheerController::class, 'resetExportStatus'])->name('beheer.export-overtredingen.reset');
     Route::patch('beheer/export-overtredingen/{overtreding}/status', [App\Http\Controllers\BeheerController::class, 'updateExportStatus'])->name('beheer.export-overtredingen.update-status');
 
