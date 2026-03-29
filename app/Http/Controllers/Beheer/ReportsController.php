@@ -29,7 +29,9 @@ class ReportsController extends Controller
         $violationsQuery = Overtreding::query()
             ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
-            ->where('controle_rondes.status', 'Afgerond');
+            ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
+            ->where('controle_rondes.status', 'Afgerond')
+            ->where('overtreding_types.code', '<>', '00');
 
         // Filters toepassen op basis queries
         if ($startDate) {
@@ -153,7 +155,9 @@ class ReportsController extends Controller
         $byMonth = Overtreding::query()
             ->where('overtredingen.status', Overtreding::STATUS_ACTIEF)
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
+            ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
             ->where('controle_rondes.status', 'Afgerond')
+            ->where('overtreding_types.code', '<>', '00')
             ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
             ->when($endDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '<=', $endDate))
             ->when($userId, fn($q) => $q->where('controle_rondes.user_id', $userId))
