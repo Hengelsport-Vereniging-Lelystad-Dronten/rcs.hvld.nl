@@ -19,6 +19,8 @@ class ControleRondeController extends Controller
         $rondes = ControleRonde::with(['user', 'water'])
             ->withCount([
                 'overtredingen as overtredingen_count' => fn ($q) => $q->where('status', Overtreding::STATUS_ACTIEF),
+                'overtredingen as overtredingen_zonder_type_00_count' => fn ($q) => $q->where('status', Overtreding::STATUS_ACTIEF)
+                    ->whereHas('overtredingType', fn ($q) => $q->where('code', '!=', '00')),
             ])
             ->latest()
             ->get();

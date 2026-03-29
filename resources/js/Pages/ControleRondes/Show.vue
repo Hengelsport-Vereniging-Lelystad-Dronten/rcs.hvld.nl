@@ -20,6 +20,13 @@ const props = defineProps({
 const waterNaam = computed(() => props.ronde?.water?.naam || 'Onbekend water');
 const controllerNaam = computed(() => props.ronde?.user?.name || 'Onbekend');
 const overtredingen = computed(() => props.ronde?.overtredingen || []);
+const isGeenOvertreding = (overtreding) => {
+    return String(overtreding.overtreding_type?.code ?? '').trim() === '00';
+};
+const gecontroleerdeVissers = computed(() => overtredingen.value.length);
+const geregistreerdeOvertredingen = computed(
+    () => overtredingen.value.filter((overtreding) => !isGeenOvertreding(overtreding)).length
+);
 
 const isActief = computed(() => props.ronde?.status === 'Actief');
 const isDeleting = ref(false);
@@ -184,16 +191,42 @@ const slaRondeOp = () => {
                 </div>
 
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-8">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Geregistreerde Overtredingen ({{ overtredingen.length }})</h3>
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900">Controle Registraties</h3>
+                            <p class="text-sm text-gray-600">
+                                Gecontroleerde vissers: {{ gecontroleerdeVissers }}
+                                <span class="mx-2">•</span>
+                                Geregistreerde overtredingen: {{ geregistreerdeOvertredingen }}
+                            </p>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-700">
+                            {{ overtredingen.length }} registratie{{ overtredingen.length === 1 ? '' : 's' }}
+                        </span>
+                    </div>
 
                     <div v-if="overtredingen.length === 0" class="text-gray-500 italic p-4 border border-gray-100 rounded-md">
                         Nog geen overtredingen vastgelegd in deze ronde.
                     </div>
 
                     <ul v-else class="space-y-4">
-                        <li v-for="overtreding in overtredingen" :key="overtreding.id" class="p-4 border border-red-200 rounded-lg bg-red-50 hover:bg-red-100 transition duration-150">
-                            <p class="font-bold text-red-800">
-                                <span class="text-sm mr-2 text-red-600">Overtreding:</span>
+                        <li
+                            v-for="overtreding in overtredingen"
+                            :key="overtreding.id"
+                            :class="[
+                                'p-4 rounded-lg transition duration-150',
+                                isGeenOvertreding(overtreding)
+                                    ? 'border border-emerald-200 bg-emerald-50 hover:bg-emerald-100'
+                                    : 'border border-red-200 bg-red-50 hover:bg-red-100'
+                            ]"
+                        >
+                            <p :class="['font-bold', isGeenOvertreding(overtreding) ? 'text-emerald-800' : 'text-red-800']">
+                                <span
+                                    :class="[
+                                        'text-sm mr-2',
+                                        isGeenOvertreding(overtreding) ? 'text-emerald-600' : 'text-red-600'
+                                    ]"
+                                >Overtreding:</span>
                                 {{ overtreding.overtreding_type?.code || '-' }} - {{ overtreding.overtreding_type?.omschrijving || 'Onbekend' }}
                             </p>
                             <p class="text-sm mt-1 text-gray-700">
