@@ -108,6 +108,11 @@ class BeheerController extends Controller
             $query->exportStatus('wel_exporteren');
         }
 
+        // Filter meldingen zonder overtreding (type code 00) weg
+        $query->whereHas('overtredingType', function ($query) {
+            $query->where('code', '<>', '00');
+        });
+
         // Alleen niet-geëxporteerde tenzij force re-export of als we alle statussen tonen
         if (empty($filters['force_re_export']) && $filters['export_status'] !== 'geexporteerd') {
             $query->whereNull('exported_at');
@@ -135,6 +140,9 @@ class BeheerController extends Controller
         $overtredingen = Overtreding::whereIn('id', $selectedOvertredingen)
             ->actief()
             ->exportStatus('wel_exporteren')
+            ->whereHas('overtredingType', function ($query) {
+                $query->where('code', '<>', '00');
+            })
             ->with(['overtredingType', 'controleRonde.user'])
             ->orderBy('geconstateerd_op')
             ->get();
