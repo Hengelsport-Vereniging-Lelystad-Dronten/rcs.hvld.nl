@@ -150,6 +150,12 @@ Route::middleware(['auth', 'beheerder'])->group(function () {
     Route::post('/beheer/reports/generate', [\App\Http\Controllers\ReportController::class, 'generate'])->name('beheer.reports.generate');
     Route::get('/beheer/reports/{report}/download', [\App\Http\Controllers\ReportController::class, 'download'])->name('beheer.reports.download');
 
+    // EXPORT OVERTREDINGEN
+    Route::get('beheer/export-overtredingen', [App\Http\Controllers\BeheerController::class, 'exportOvertredingenIndex'])->name('beheer.export-overtredingen.index');
+    Route::get('beheer/export-overtredingen/pdf', [App\Http\Controllers\BeheerController::class, 'exportOvertredingenPdf'])->name('beheer.export-overtredingen.pdf');
+    Route::post('beheer/export-overtredingen/reset', [App\Http\Controllers\BeheerController::class, 'resetExportStatus'])->name('beheer.export-overtredingen.reset');
+    Route::post('beheer/export-overtredingen/reset', [App\Http\Controllers\BeheerController::class, 'resetExportStatus'])->name('beheer.export-overtredingen.reset');
+
 
     // GEBRUIKERS BEHEER (CRUD)
     // Resource routes voor het beheren van gebruikers (overzicht, aanmaken, bewerken, verwijderen).

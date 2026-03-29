@@ -40,6 +40,7 @@ class Overtreding extends Model
         'annulatie_reden',
         'geannuleerd_door',
         'geannuleerd_op',
+        'exported_at',
     ];
 
     protected $casts = [
@@ -47,6 +48,7 @@ class Overtreding extends Model
         'geconstateerd_op' => 'datetime',
         'vispas_ingenomen' => 'boolean',
         'geannuleerd_op' => 'datetime',
+        'exported_at' => 'datetime',
     ];
 
     /**
@@ -73,5 +75,15 @@ class Overtreding extends Model
     public function scopeActief(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_ACTIEF);
+    }
+
+    public function scopeNietGeexporteerd(Builder $query): Builder
+    {
+        return $query->whereNull('exported_at');
+    }
+
+    public function scopeGeexporteerd(Builder $query): Builder
+    {
+        return $query->whereNotNull('exported_at');
     }
 }
