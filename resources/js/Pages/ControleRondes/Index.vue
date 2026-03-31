@@ -81,11 +81,12 @@ const getStatusColor = (status) => {
 
                         <!-- Tabel Header voor Desktop (hidden md:block) -->
                         <div class="hidden md:block">
-                            <div class="grid grid-cols-6 gap-4 px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                            <div class="grid grid-cols-7 gap-4 px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
                                 <div>Water</div>
                                 <div>Controleur</div>
                                 <div>Start Tijd</div>
-                                <div>Overtredingen</div> 
+                                <div>Gecontroleerde vissers</div>
+                                <div>Overtredingen</div>
                                 <div>Status</div>
                                 <div>Acties</div>
                             </div>
@@ -99,11 +100,9 @@ const getStatusColor = (status) => {
                                 class="p-4 hover:bg-gray-50 transition duration-150"
                             >
                                 <!-- Responsieve Grid: 1 kolom op mobiel (grid-cols-1), 6 kolommen op desktop (md:grid-cols-6) -->
-                                <div class="grid grid-cols-1 md:grid-cols-6 gap-2 md:gap-4 items-center">
+                                <div class="grid grid-cols-1 md:grid-cols-7 gap-2 md:gap-4 items-center">
                                     <div class="md:p-2">
-                                        <!-- Mobiel label (zichtbaar op mobiel, hidden md:hidden) -->
                                         <span class="md:hidden font-bold block text-sm text-gray-500">Water:</span>
-                                        <!-- Naam van het gecontroleerde water -->
                                         <span class="font-medium text-gray-900">
                                             {{ ronde.water.naam }}
                                             <span v-if="ronde.water.beheersgebied" :class="ronde.water.beheersgebied === 'SVU' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'" class="ml-1 text-[10px] px-1.5 py-0.5 rounded-full align-middle">
@@ -113,32 +112,34 @@ const getStatusColor = (status) => {
                                     </div>
                                     <div class="md:p-2">
                                         <span class="md:hidden font-bold block text-sm text-gray-500">Controller:</span>
-                                        <!-- Naam van de gebruiker die de ronde startte -->
                                         {{ ronde.user.name }}
                                     </div>
                                     <div class="md:p-2">
                                         <span class="md:hidden font-bold block text-sm text-gray-500">Start Tijd:</span>
-                                        <!-- Toont de starttijd, geformatteerd naar Nederlandse locale -->
                                         {{ new Date(ronde.start_tijd).toLocaleString('nl-NL') }}
                                     </div>
                                     
                                     <div class="md:p-2">
-                                        <span class="md:hidden font-bold block text-sm text-gray-500">Overtredingen:</span>
-                                        <!-- Telt het aantal overtredingen (overtredingen_count komt van de backend) -->
-                                        <span :class="['font-medium', {'text-red-600 font-bold': ronde.overtredingen_count > 0, 'text-gray-500': ronde.overtredingen_count === 0}]">
+                                        <span class="md:hidden font-bold block text-sm text-gray-500">Gecontroleerde vissers:</span>
+                                        <span class="font-medium text-gray-700">
                                             {{ ronde.overtredingen_count }}
                                         </span>
                                     </div>
 
                                     <div class="md:p-2">
+                                        <span class="md:hidden font-bold block text-sm text-gray-500">Overtredingen:</span>
+                                        <span :class="['font-medium', {'text-red-600 font-bold': ronde.overtredingen_zonder_type_00_count > 0, 'text-gray-500': ronde.overtredingen_zonder_type_00_count === 0}]">
+                                            {{ ronde.overtredingen_zonder_type_00_count ?? 0 }}
+                                        </span>
+                                    </div>
+
+                                    <div class="md:p-2">
                                         <span class="md:hidden font-bold block text-sm text-gray-500">Status:</span>
-                                        <!-- Status Badge met dynamische kleur op basis van getStatusColor() -->
                                         <span :class="['px-2 inline-flex text-xs leading-5 font-semibold rounded-full', getStatusColor(ronde.status)]">
                                             {{ ronde.status }}
                                         </span>
                                     </div>
                                     <div class="md:p-2">
-                                        <!-- Link naar de detailpagina van de ronde (controles.show) -->
                                         <Link :href="route('controles.show', ronde.id)" class="text-indigo-600 hover:text-indigo-900 font-medium">Bekijk Details</Link>
                                     </div>
                                 </div>

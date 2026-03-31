@@ -32,16 +32,16 @@ defineProps({
 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                     
-                    <!-- KPI Kaart: Totaal Overtredingen -->
+                    <!-- KPI Kaart: Gecontroleerde Vissers -->
                     <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 rounded-xl">
-                        <p class="text-sm font-medium text-gray-500">Totaal Overtredingen</p>
-                        <p class="text-3xl font-bold text-red-600 mt-1">{{ stats.totalOvertredingen }}</p>
+                        <p class="text-sm font-medium text-gray-500">Gecontroleerde vissers</p>
+                        <p class="text-3xl font-bold text-teal-600 mt-1">{{ stats.totalGecontroleerdeVissers }}</p>
                     </div>
 
-                    <!-- KPI Kaart: Actieve Rondes -->
+                    <!-- KPI Kaart: Overtredingen -->
                     <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 rounded-xl">
-                        <p class="text-sm font-medium text-gray-500">Actieve Rondes</p>
-                        <p class="text-3xl font-bold text-amber-500 mt-1">{{ stats.activeRondes }}</p>
+                        <p class="text-sm font-medium text-gray-500">Overtredingen</p>
+                        <p class="text-3xl font-bold text-red-600 mt-1">{{ stats.totalOvertredingen }}</p>
                     </div>
 
                     <!-- KPI Kaart: Aantal Controleurs -->

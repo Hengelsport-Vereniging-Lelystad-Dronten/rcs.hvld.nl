@@ -23,6 +23,7 @@ class DashboardController extends Controller
     public function index()
     {
         // 1. KPI's ophalen
+        $totalGecontroleerdeVissers = Overtreding::actief()->count();
         $totalOvertredingen = Overtreding::actief()
             ->whereHas('overtredingType', function ($query) {
                 $query->where('code', '<>', '00');
@@ -51,6 +52,7 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'stats' => [
+                'totalGecontroleerdeVissers' => $totalGecontroleerdeVissers,
                 'totalOvertredingen' => $totalOvertredingen,
                 'activeRondes' => $activeRondes,
                 'totalControleuren' => $totalControleuren,

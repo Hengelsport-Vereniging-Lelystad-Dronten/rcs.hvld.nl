@@ -17,6 +17,7 @@ class ControleRondeController extends Controller
     public function index()
     {
         $rondes = ControleRonde::with(['user', 'water'])
+            ->where('status', ControleRonde::STATUS_AFGEROND)
             ->withCount([
                 'overtredingen as overtredingen_count' => fn ($q) => $q->where('status', Overtreding::STATUS_ACTIEF),
                 'overtredingen as overtredingen_zonder_type_00_count' => fn ($q) => $q->where('status', Overtreding::STATUS_ACTIEF)
