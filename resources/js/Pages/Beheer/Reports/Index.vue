@@ -76,7 +76,10 @@ const calculatePercentage = (value, total) => {
 
 const maxMonthCount = computed(() => {
     if (!props.byMonth || props.byMonth.length === 0) return 1;
-    return Math.max(...props.byMonth.map(m => Number(m.count))) || 1;
+    return Math.max(
+        ...props.byMonth.map(m => Number(m.checked_fishermen)),
+        ...props.byMonth.map(m => Number(m.violations)),
+    ) || 1;
 });
 </script>
 
@@ -146,20 +149,45 @@ const maxMonthCount = computed(() => {
                 <!-- Grafiek: Overtredingen per Maand -->
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                     <h3 class="text-lg font-bold text-gray-900 mb-4">Overtredingen per Maand</h3>
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="flex items-center gap-2 text-sm text-gray-600">
+                            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                            Gecontroleerde vissers
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-gray-600">
+                            <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                            Overtredingen
+                        </div>
+                    </div>
                     <div v-if="byMonth.length === 0" class="text-gray-500 italic">Geen data beschikbaar voor deze periode.</div>
                     <div v-else class="flex items-end space-x-4 h-64 border-b border-gray-200 pb-2 overflow-x-auto">
-                        <div v-for="(month, index) in byMonth" :key="index" class="flex flex-col items-center group relative min-w-[3rem] h-full justify-end">
+                        <div v-for="(month, index) in byMonth" :key="index" class="flex flex-col items-center group relative min-w-[4rem] h-full justify-end">
                             <!-- Tooltip -->
                             <div class="absolute bottom-full mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10 shadow-lg">
-                                {{ month.label }}: {{ month.count }} overtredingen
+                                {{ month.label }}: {{ month.checked_fishermen }} gecontroleerde vissers, {{ month.violations }} overtredingen
                             </div>
-                            <!-- Bar -->
-                            <div class="w-12 bg-blue-500 rounded-t hover:bg-blue-600 transition-all duration-300 relative" 
-                                :style="{ height: (month.count / maxMonthCount * 80) + '%' }">
-                                <span class="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-bold text-gray-700">{{ month.count }}</span>
+                            <div class="flex items-end gap-2 w-full justify-center h-full">
+                                <div class="flex flex-col items-center justify-end h-full">
+                                    <div class="w-4 bg-emerald-500 rounded-t hover:bg-emerald-600 transition-all duration-300"
+                                        :style="{
+                                            height: (month.checked_fishermen / maxMonthCount * 80) + '%',
+                                            minHeight: month.checked_fishermen > 0 ? '1.5rem' : '0',
+                                        }">
+                                    </div>
+                                    <div class="mt-1 text-[10px] text-gray-700">{{ month.checked_fishermen }}</div>
+                                </div>
+                                <div class="flex flex-col items-center justify-end h-full">
+                                    <div class="w-4 bg-red-500 rounded-t hover:bg-red-600 transition-all duration-300"
+                                        :style="{
+                                            height: (month.violations / maxMonthCount * 80) + '%',
+                                            minHeight: month.violations > 0 ? '1.5rem' : '0',
+                                        }">
+                                    </div>
+                                    <div class="mt-1 text-[10px] text-gray-700">{{ month.violations }}</div>
+                                </div>
                             </div>
                             <!-- Label -->
-                            <div class="mt-2 text-xs text-gray-600 whitespace-nowrap">{{ month.label }}</div>
+                            <div class="mt-2 text-xs text-gray-600 whitespace-nowrap text-center">{{ month.label }}</div>
                         </div>
                     </div>
                 </div>

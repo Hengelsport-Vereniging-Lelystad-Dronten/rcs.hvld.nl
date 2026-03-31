@@ -184,13 +184,13 @@ class ReportsController extends Controller
             ->join('controle_rondes', 'overtredingen.controle_ronde_id', '=', 'controle_rondes.id')
             ->join('overtreding_types', 'overtredingen.overtreding_type_id', '=', 'overtreding_types.id')
             ->where('controle_rondes.status', 'Afgerond')
-            ->where('overtreding_types.code', '<>', '00')
             ->when($startDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '>=', $startDate))
             ->when($endDate, fn($q) => $q->whereDate('controle_rondes.start_tijd', '<=', $endDate))
             ->when($userId, fn($q) => $q->where('controle_rondes.user_id', $userId))
             ->select(
                 DB::raw("DATE_FORMAT(controle_rondes.start_tijd, '%Y-%m') as month"),
-                DB::raw('count(*) as count')
+                DB::raw('count(*) as checked_fishermen'),
+                DB::raw("SUM(CASE WHEN overtreding_types.code <> '00' THEN 1 ELSE 0 END) as violations")
             )
             ->groupBy('month')
             ->orderBy('month')
@@ -198,7 +198,8 @@ class ReportsController extends Controller
             ->map(function ($item) {
                 return [
                     'label' => \Carbon\Carbon::createFromFormat('Y-m', $item->month)->translatedFormat('M Y'),
-                    'count' => $item->count,
+                    'checked_fishermen' => $item->checked_fishermen,
+                    'violations' => $item->violations,
                 ];
             });
 
@@ -454,7 +455,13 @@ class ReportsController extends Controller
             });
 
         $pdf = Pdf::loadView('pdf.report', [
-            'totals' => ['rounds' => $totalRounds, 'violations' => $totalViolations, 'active_controllers' => $activeControllers],
+            'totals' => [
+                'rounds' => $totalRounds,
+                'checked_fishermen' => $totalCheckedFishermen,
+                'violations' => $totalViolations,
+                'no_violations' => $totalNoViolations,
+                'active_controllers' => $activeControllers,
+            ],
             'byWater' => $byWater,
             'byType' => $byType,
             'byController' => $byController,
