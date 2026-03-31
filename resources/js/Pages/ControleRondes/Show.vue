@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm, router } from '@inertiajs/vue3';
+import { Head, useForm, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import InputLabel from '@/Components/InputLabel.vue';
@@ -17,6 +17,12 @@ const props = defineProps({
     statusOptions: { type: Array, required: true },
 });
 
+const getLocalDateTime = () => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+};
+
 const waterNaam = computed(() => props.ronde?.water?.naam || 'Onbekend water');
 const controllerNaam = computed(() => props.ronde?.user?.name || 'Onbekend');
 const overtredingen = computed(() => props.ronde?.overtredingen || []);
@@ -28,14 +34,93 @@ const geregistreerdeOvertredingen = computed(
     () => overtredingen.value.filter((overtreding) => !isGeenOvertreding(overtreding)).length
 );
 
+const page = usePage();
+const currentUser = computed(() => page.props.auth?.user || null);
+const isBeheerder = computed(() => {
+    return currentUser.value
+        ? ['Beheerder', 'Coordinator', 'Coördinator'].includes(currentUser.value.role)
+        : false;
+});
+const isOwner = computed(() => {
+    return currentUser.value ? Number(currentUser.value.id) === Number(props.ronde.user_id) : false;
+});
+const isEditable = computed(() => isOwner.value || isBeheerder.value);
 const isActief = computed(() => props.ronde?.status === 'Actief');
 const isDeleting = ref(false);
 const isEditingRonde = ref(false);
+const canDeleteRonde = computed(() => {
+    return isBeheerder.value || (overtredingen.value.length === 0 && isActief.value);
+});
+const deleteDisabled = computed(() => {
+    return isDeleting.value || (!isBeheerder.value && !isActief.value);
+});
 
-const getLocalDateTime = () => {
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    return now.toISOString().slice(0, 16);
+const editingOvertredingId = ref(null);
+const editForm = useForm({
+    overtreding_type_id: '',
+    geconstateerd_op: getLocalDateTime(),
+    locatie_details: '',
+    constatering_wijze: '',
+    aanleiding: '',
+    middel: '',
+    vispasnummer: '',
+    vispas_ingenomen: false,
+    details: '',
+});
+
+const editingOvertreding = computed(() => {
+    return overtredingen.value.find(item => Number(item.id) === Number(editingOvertredingId.value)) || null;
+});
+
+const startEditingOvertreding = (overtreding) => {
+    editingOvertredingId.value = overtreding.id;
+    editForm.reset();
+    editForm.clearErrors();
+    editForm.overtreding_type_id = overtreding.overtreding_type_id;
+    editForm.geconstateerd_op = overtreding.geconstateerd_op ? new Date(overtreding.geconstateerd_op).toISOString().slice(0, 16) : getLocalDateTime();
+    editForm.locatie_details = JSON.stringify(overtreding.locatie_details || {
+        type: 'water',
+        id: props.ronde.water.id,
+        naam: props.ronde.water.naam,
+    });
+    editForm.constatering_wijze = overtreding.constatering_wijze || (props.constateringWijzes.length > 0 ? props.constateringWijzes[0] : '');
+    editForm.aanleiding = overtreding.aanleiding || '';
+    editForm.middel = overtreding.middel || '';
+    editForm.vispasnummer = overtreding.vispasnummer || '';
+    editForm.vispas_ingenomen = Boolean(overtreding.vispas_ingenomen);
+    editForm.details = overtreding.details || '';
+};
+
+const cancelEditingOvertreding = () => {
+    editingOvertredingId.value = null;
+    editForm.reset();
+    editForm.clearErrors();
+};
+
+const submitOvertredingUpdate = () => {
+    editForm.put(route('overtredingen.update', editingOvertredingId.value), {
+        preserveScroll: true,
+        onSuccess: () => {
+            editingOvertredingId.value = null;
+            router.reload({ only: ['ronde'] });
+        },
+    });
+};
+
+const annulerenOvertreding = (overtreding) => {
+    const reason = prompt('Reden annulering van deze overtreding (minimaal 5 tekens):');
+    if (!reason || reason.trim().length < 5) {
+        return;
+    }
+
+    router.put(route('overtredingen.annuleer', overtreding.id), {
+        annulatie_reden: reason.trim(),
+    }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            router.reload({ only: ['ronde'] });
+        },
+    });
 };
 
 const afrondForm = useForm({
@@ -114,6 +199,7 @@ const slaRondeOp = () => {
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-lg font-bold text-gray-900">Ronde Overzicht</h3>
                         <button
+                            v-if="isEditable"
                             type="button"
                             @click="bewerkRonde"
                             class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded hover:bg-indigo-700"
@@ -204,6 +290,81 @@ const slaRondeOp = () => {
                             {{ overtredingen.length }} registratie{{ overtredingen.length === 1 ? '' : 's' }}
                         </span>
                     </div>
+                    <div v-if="editingOvertredingId" class="mb-6 p-4 border border-yellow-300 rounded-lg bg-yellow-50">
+                        <div class="flex items-center justify-between mb-3">
+                            <div>
+                                <h4 class="font-semibold text-yellow-900">Bewerk overtreding</h4>
+                                <p class="text-sm text-yellow-700">Wijzig de gegevens van deze overtreding en sla de update op.</p>
+                            </div>
+                            <button
+                                type="button"
+                                @click="cancelEditingOvertreding"
+                                class="text-sm text-yellow-900 hover:underline"
+                            >
+                                Annuleren
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div>
+                                <InputLabel for="edit_overtreding_type_id" value="Type overtreding" />
+                                <select id="edit_overtreding_type_id" v-model="editForm.overtreding_type_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                                    <option v-for="type in overtredingTypes" :key="type.id" :value="type.id">
+                                        {{ type.code }} - {{ type.omschrijving }}
+                                    </option>
+                                </select>
+                                <InputError :message="editForm.errors.overtreding_type_id" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="edit_geconstateerd_op" value="Wanneer geconstateerd" />
+                                <TextInput id="edit_geconstateerd_op" type="datetime-local" v-model="editForm.geconstateerd_op" class="mt-1 block w-full" />
+                                <InputError :message="editForm.errors.geconstateerd_op" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="edit_constatering_wijze" value="Constatering wijze" />
+                                <select id="edit_constatering_wijze" v-model="editForm.constatering_wijze" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                                    <option v-for="wijze in constateringWijzes" :key="wijze" :value="wijze">{{ wijze }}</option>
+                                </select>
+                                <InputError :message="editForm.errors.constatering_wijze" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="edit_vispasnummer" value="Vispasnummer" />
+                                <TextInput id="edit_vispasnummer" v-model="editForm.vispasnummer" type="text" class="mt-1 block w-full" />
+                                <InputError :message="editForm.errors.vispasnummer" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="edit_middel" value="Middel" />
+                                <TextInput id="edit_middel" v-model="editForm.middel" type="text" class="mt-1 block w-full" />
+                                <InputError :message="editForm.errors.middel" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="edit_aanleiding" value="Aanleiding" />
+                                <TextInput id="edit_aanleiding" v-model="editForm.aanleiding" type="text" class="mt-1 block w-full" />
+                                <InputError :message="editForm.errors.aanleiding" class="mt-2" />
+                            </div>
+
+                            <div class="lg:col-span-2">
+                                <InputLabel for="edit_details" value="Details" />
+                                <textarea id="edit_details" v-model="editForm.details" rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></textarea>
+                                <InputError :message="editForm.errors.details" class="mt-2" />
+                            </div>
+
+                            <div class="lg:col-span-2 flex items-center gap-3">
+                                <label class="inline-flex items-center gap-2">
+                                    <input type="checkbox" v-model="editForm.vispas_ingenomen" class="rounded border-gray-300 text-red-600 focus:ring-red-500" />
+                                    <span class="text-sm">Vispas ingenomen</span>
+                                </label>
+                                <PrimaryButton type="button" @click="submitOvertredingUpdate" :disabled="editForm.processing">
+                                    {{ editForm.processing ? 'Bezig met opslaan...' : 'Opslaan' }}
+                                </PrimaryButton>
+                            </div>
+                        </div>
+                    </div>
 
                     <div v-if="overtredingen.length === 0" class="text-gray-500 italic p-4 border border-gray-100 rounded-md">
                         Nog geen overtredingen vastgelegd in deze ronde.
@@ -241,6 +402,30 @@ const slaRondeOp = () => {
                             <p v-if="overtreding.details" class="text-xs italic text-gray-600 mt-1">
                                 <span class="font-semibold">Details:</span> {{ overtreding.details }}
                             </p>
+                            <p class="text-xs text-gray-500 mt-2">
+                                <span class="font-semibold">Status:</span> {{ overtreding.status }}</p>
+                            <p v-if="overtreding.status === 'geannuleerd'" class="text-xs text-gray-500 mt-1">
+                                Geannuleerd door {{ overtreding.geannuleerdDoor?.name || 'onbekend' }} op {{ overtreding.geannuleerd_op ? new Date(overtreding.geannuleerd_op).toLocaleString('nl-NL') : 'onbekend' }}
+                            </p>
+
+                            <div class="mt-4 flex flex-wrap gap-2">
+                                <button
+                                    v-if="isEditable && overtreding.status === 'actief'"
+                                    type="button"
+                                    @click="startEditingOvertreding(overtreding)"
+                                    class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded hover:bg-indigo-700"
+                                >
+                                    Bewerk
+                                </button>
+                                <button
+                                    v-if="isEditable && overtreding.status !== 'geannuleerd'"
+                                    type="button"
+                                    @click="annulerenOvertreding(overtreding)"
+                                    class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded hover:bg-red-700"
+                                >
+                                    Annuleer
+                                </button>
+                            </div>
                         </li>
                     </ul>
                 </div>
@@ -291,20 +476,23 @@ const slaRondeOp = () => {
                             </PrimaryButton>
                         </form>
 
-                        <div v-if="overtredingen.length === 0" class="mt-8 pt-4 border-t border-gray-200">
+                        <div v-if="canDeleteRonde" class="mt-8 pt-4 border-t border-gray-200">
                             <h4 class="font-medium text-gray-700 mb-2">Ronde Permanent Verwijderen</h4>
                             <p class="text-xs text-red-500 mb-3">
-                                <span class="font-bold">Waarschuwing:</span> Hiermee wordt de ronde permanent verwijderd, inclusief overtredingen.
+                                <span class="font-bold">Waarschuwing:</span>
+                                Deze actie verwijdert de hele ronde permanent.
+                                <span v-if="isBeheerder" class="font-semibold">Alle gekoppelde overtredingen worden ook verwijderd.</span>
+                                <span v-else>Alle vastgelegde overtredingen gaan verloren.</span>
                             </p>
 
                             <button
                                 @click="annuleerRonde"
-                                :disabled="isDeleting || !isActief"
+                                :disabled="deleteDisabled"
                                 type="button"
-                                :class="{ 'opacity-25': isDeleting || !isActief }"
+                                :class="{ 'opacity-25': deleteDisabled }"
                                 class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 disabled:bg-gray-400"
                             >
-                                {{ isDeleting ? 'Bezig met annuleren...' : 'Annuleer Ronde' }}
+                                {{ isDeleting ? 'Bezig met verwijderen...' : isBeheerder ? 'Verwijder Ronde' : 'Annuleer Ronde' }}
                             </button>
                         </div>
                     </div>

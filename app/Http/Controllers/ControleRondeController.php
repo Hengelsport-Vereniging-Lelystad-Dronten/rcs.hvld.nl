@@ -137,7 +137,20 @@ class ControleRondeController extends Controller
 
     public function destroy(ControleRonde $controle)
     {
-        if ($controle->overtredingen()->exists()) {
+        $user = auth()->user();
+        $isOwner = (int) $controle->user_id === (int) $user->id;
+        $isBeheerder = method_exists($user, 'isBeheerder') && $user->isBeheerder();
+
+        if (!$isOwner && !$isBeheerder) {
+            activity()
+                ->performedOn($controle)
+                ->withProperties(['attempted_by' => $user->id])
+                ->log('Controle ronde verwijderen geweigerd (geen rechten)');
+
+            abort(403);
+        }
+
+        if ($controle->overtredingen()->exists() && !$isBeheerder) {
             activity()
                 ->performedOn($controle)
                 ->withProperties([
@@ -153,7 +166,11 @@ class ControleRondeController extends Controller
 
         activity()
             ->performedOn($controle)
-            ->withProperties(['old' => $oldData])
+            ->withProperties([
+                'old' => $oldData,
+                'overtredingen_count' => $controle->overtredingen()->count(),
+                'is_beheerder' => $isBeheerder,
+            ])
             ->log('Controle ronde verwijderd');
 
         $controle->delete();
