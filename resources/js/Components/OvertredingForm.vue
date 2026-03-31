@@ -218,7 +218,7 @@ const submitOvertreding = () => {
 
 <template>
     <div class="p-6">
-        <h3 class="text-xl font-bold text-gray-900 mb-6">Nieuwe Overtreding Registreren</h3>
+        <h3 class="text-xl font-bold text-gray-900 mb-6">Nieuwe registratie</h3>
         
         <form @submit.prevent="submitOvertreding" class="space-y-4">
 
