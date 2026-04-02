@@ -418,7 +418,7 @@ const getCategoryLabel = (category) => {
                                 >
                                 <span class="text-sm font-medium text-gray-700">Ik wil anoniem blijven</span>
                             </label>
-                            <p class="text-xs text-gray-600 mt-2">Wenn u anoniem blijft kunnen we geen vervolgvragen stellen.</p>
+                            <p class="text-xs text-gray-600 mt-2">Als u anoniem blijft kunnen we geen vervolgvragen stellen.</p>
                         </div>
 
                         <!-- Contact Info (if not anonymous) -->
