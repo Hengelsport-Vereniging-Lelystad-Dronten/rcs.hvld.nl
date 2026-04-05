@@ -355,7 +355,7 @@ const submitOvertreding = () => {
             <div class="pt-4">
                 <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing || isRecidiveCheckLoading" class="w-full justify-center bg-red-600 hover:bg-red-700 active:bg-red-800">
                     <span v-if="form.processing">Vastleggen...</span>
-                    <span v-else>Overtreding Vastleggen</span>
+                    <span v-else>Visser gecontroleerd</span>
                 </PrimaryButton>
             </div>
 
