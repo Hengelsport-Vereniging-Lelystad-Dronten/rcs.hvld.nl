@@ -23,7 +23,7 @@ import { Head, Link } from '@inertiajs/vue3';
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Voorbeeld Links - Pas aan naar werkelijke URL's -->
-                        <a href="https://s.hvld.nl/rcshandleiding" target="_blank" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition group">
+                        <a href="https://drive.google.com/file/d/1LKH6iE8qa0x-ozKVHxE51iLtyYnQ4-zr/view?usp=drive_link" target="_blank" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition group">
                             <span class="text-3xl mr-4">📘</span>
                             <div>
                                 <h3 class="font-bold text-gray-900 group-hover:text-blue-700">Handboek Controleur RCS</h3>
@@ -31,13 +31,13 @@ import { Head, Link } from '@inertiajs/vue3';
                             </div>
                         </a>
 
-                        <!-- <a href="#" target="_blank" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition group">
+                        <a href="https://docs.google.com/spreadsheets/d/1_FHRCVkyBZrXEv1A7OY283EbvlQQPYxY/view?usp=drive_link&ouid=104740159758276464299&rtpof=true&sd=true" target="_blank" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition group">
                             <span class="text-3xl mr-4">📋</span>
                             <div>
                                 <h3 class="font-bold text-gray-900 group-hover:text-blue-700">Protocol</h3>
-                                <p class="text-sm text-gray-500">PDF met gedetailleerde uitleg over specifieke situaties.</p>
+                                <p class="text-sm text-gray-500">Kilometer declaratie formulier (template).</p>
                             </div>
-                        </a> -->
+                        </a>
                     </div>
                 </div>
             </div>
