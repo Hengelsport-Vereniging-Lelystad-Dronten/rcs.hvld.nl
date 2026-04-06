@@ -66,7 +66,7 @@
         <div class="overtreding-header">
             <h2 class="overtreding-title">Overtreding #{{ $overtreding->id }}</h2>
             <div class="overtreding-meta">
-                Type: {{ $overtreding->overtredingType->naam ?? 'Onbekend' }} |
+                Type: {{ $overtreding->overtredingType->omschrijving ?? $overtreding->overtredingType->code ?? 'Onbekend' }} |
                 Controleur: {{ $overtreding->controleRonde->user->name ?? 'Onbekend' }} |
                 Datum: {{ $overtreding->geconstateerd_op?->format('d-m-Y H:i') ?? 'Onbekend' }}
             </div>
