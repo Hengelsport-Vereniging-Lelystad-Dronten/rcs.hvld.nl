@@ -85,7 +85,7 @@ class BeheerController extends Controller
         $filters = $request->only(['start_date', 'end_date', 'overtreding_type_id', 'export_status', 'force_re_export']);
 
         $query = Overtreding::actief()
-            ->with(['overtredingType', 'controleRonde.user'])
+            ->with(['overtredingType', 'controleRonde.user', 'controleRonde.water'])
             ->orderBy('geconstateerd_op');
 
         // Filters toepassen
@@ -143,7 +143,7 @@ class BeheerController extends Controller
             ->whereHas('overtredingType', function ($query) {
                 $query->where('code', '<>', '00');
             })
-            ->with(['overtredingType', 'controleRonde.user'])
+            ->with(['overtredingType', 'controleRonde.user', 'controleRonde.water'])
             ->orderBy('geconstateerd_op')
             ->get();
 

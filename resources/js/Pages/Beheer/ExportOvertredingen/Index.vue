@@ -179,12 +179,19 @@ const getOvertredingTypeName = (overtreding) => {
     return overtreding.overtreding_type.omschrijving || overtreding.overtreding_type.code || 'Onbekend';
 };
 
-const getLocatieName = (locatieDetails) => {
-    if (!locatieDetails) {
+const getLocatieName = (overtreding) => {
+    if (!overtreding) {
         return 'Geen locatie';
     }
 
-    return locatieDetails.naam || locatieDetails.adres || locatieDetails.locatie_omschrijving || locatieDetails.omschrijving || 'Geen locatie';
+    return overtreding.resolved_locatie_naam
+        || overtreding.locatie_details?.naam
+        || overtreding.locatie_details?.water_naam
+        || overtreding.locatie_details?.adres
+        || overtreding.locatie_details?.locatie_omschrijving
+        || overtreding.locatie_details?.omschrijving
+        || overtreding.controle_ronde?.water?.naam
+        || 'Geen locatie';
 };
 </script>
 
@@ -345,7 +352,7 @@ const getLocatieName = (locatieDetails) => {
                                             {{ getOvertredingTypeName(overtreding) }}
                                         </td>
                                         <td class="px-6 py-4 text-sm text-gray-900">
-                                            {{ getLocatieName(overtreding.locatie_details) }}
+                                            {{ getLocatieName(overtreding) }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {{ overtreding.controle_ronde && overtreding.controle_ronde.user ? overtreding.controle_ronde.user.name : 'N/A' }}

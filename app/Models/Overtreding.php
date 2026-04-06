@@ -52,6 +52,11 @@ class Overtreding extends Model
         'exported_at' => 'datetime',
     ];
 
+    protected $appends = [
+        'resolved_locatie',
+        'resolved_locatie_naam',
+    ];
+
     /**
      * Relatie: Een Overtreding behoort tot één ControleRonde.
      */
@@ -113,5 +118,45 @@ class Overtreding extends Model
     {
         return $query->where('export_status', 'wel_exporteren')
                     ->whereNull('exported_at');
+    }
+
+    public function getResolvedLocatieAttribute(): ?array
+    {
+        $locatieDetails = $this->locatie_details;
+
+        if (is_array($locatieDetails) && !empty($locatieDetails)) {
+            return $locatieDetails;
+        }
+
+        $water = $this->controleRonde?->water;
+
+        if (!$water) {
+            return null;
+        }
+
+        return array_filter([
+            'type' => 'water',
+            'id' => $water->id,
+            'naam' => $water->naam,
+            'water_naam' => $water->naam,
+            'lat' => $water->latitude,
+            'lon' => $water->longitude,
+        ], static fn ($value) => $value !== null && $value !== '');
+    }
+
+    public function getResolvedLocatieNaamAttribute(): string
+    {
+        $locatie = $this->resolved_locatie;
+
+        if (!$locatie) {
+            return 'Geen locatie';
+        }
+
+        return $locatie['naam']
+            ?? $locatie['water_naam']
+            ?? $locatie['adres']
+            ?? $locatie['locatie_omschrijving']
+            ?? $locatie['omschrijving']
+            ?? 'Geen locatie';
     }
 }

@@ -75,10 +75,15 @@
         <div class="field-group">
             <span class="field-label">WAAR:</span>
             <span class="field-value">
-                @if($overtreding->locatie_details)
-                    Water: {{ $overtreding->locatie_details['water_naam'] ?? 'Onbekend' }},
-                    Zone: {{ $overtreding->locatie_details['zone'] ?? 'Onbekend' }},
-                    Coördinaten: {{ $overtreding->locatie_details['lat'] ?? '?' }}, {{ $overtreding->locatie_details['lon'] ?? '?' }}
+                @php($locatie = $overtreding->resolved_locatie)
+                @if($locatie)
+                    Water: {{ $locatie['water_naam'] ?? $locatie['naam'] ?? 'Onbekend' }}
+                    @if(!empty($locatie['zone']))
+                        , Zone: {{ $locatie['zone'] }}
+                    @endif
+                    @if(isset($locatie['lat']) || isset($locatie['lon']))
+                        , Coördinaten: {{ $locatie['lat'] ?? '?' }}, {{ $locatie['lon'] ?? '?' }}
+                    @endif
                 @else
                     Onbekend
                 @endif
