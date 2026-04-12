@@ -33,7 +33,7 @@ class DashboardController extends Controller
         $totalControleuren = User::where('actief', true)
             ->whereIn('id', ControleRonde::select('user_id')
                 ->where('start_tijd', '>=', now()->subMonths(3))
-                ->where('status', ControleRonde::STATUS_ACTIEF)
+                ->where('status', ControleRonde::STATUS_AFGEROND)
             )
             ->count();
 
