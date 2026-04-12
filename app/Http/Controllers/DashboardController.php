@@ -29,8 +29,13 @@ class DashboardController extends Controller
                 $query->where('code', '<>', '00');
             })
             ->count();
-        $activeRondes = ControleRonde::where('status', 'Actief')->count();
-        $totalControleuren = User::where('actief', true)->count();
+        $activeRondes = ControleRonde::where('status', 'Afgerond')->count();
+        $totalControleuren = User::where('actief', true)
+            ->whereIn('id', ControleRonde::select('user_id')
+                ->where('start_tijd', '>=', now()->subMonths(3))
+                ->where('status', ControleRonde::STATUS_ACTIEF)
+            )
+            ->count();
 
         // 2. Meest voorkomende overtreding (Top 1)
         $topOvertreding = Overtreding::actief()
