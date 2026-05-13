@@ -17,7 +17,7 @@ const updatingStatus = ref(false);
 const statusTexts = {
     nieuw: 'Nieuw',
     in_behandeling: 'In behandeling',
-    verwerkt: 'Verwerkt',
+    afgehandeld: 'Afgehandeld',
     afgewezen: 'Afgewezen',
 };
 

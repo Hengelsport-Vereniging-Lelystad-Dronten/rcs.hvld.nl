@@ -23,12 +23,10 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KaartController;
 use App\Http\Controllers\Beheer\AuditLogController;
+use App\Http\Controllers\Beheer\OverlastMeldingController;
 use App\Http\Controllers\Beheer\StrafmaatController;
 use App\Http\Controllers\Beheer\ReportsController;
-use App\Http\Controllers\Api\OverlastMeldingApiController;
-use App\Models\OverlastMelding;
 use Illuminate\Foundation\Application;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -207,54 +205,9 @@ Route::middleware(['auth', 'beheerder'])->group(function () {
      * Beheerders kunnen meldingen inzien, filteren, status wijzigen en afwijzen.
      */
     Route::prefix('beheer/overlast-meldingen')->name('beheer.overlast-meldingen.')->group(function () {
-        // Overzicht van alle meldingen
-        Route::get('/', function (Request $request) {
-            $query = \App\Models\OverlastMelding::with('verwerktDoor')->latest();
-
-            // Optionele filter: status (nieuw, in_behandeling, afgehandeld, afgewezen)
-            if ($request->has('status')) {
-                if ($request->get('status') === 'all') {
-                    // Laat alle statussen zien wanneer expliciet gekozen.
-                } elseif (in_array($request->get('status'), \App\Models\OverlastMelding::statuses())) {
-                    $query->where('status', $request->get('status'));
-                } else {
-                    // Onbekende statusparameter wordt genegeerd en we vallen terug op de standaardweergave.
-                    $query->whereIn('status', [\App\Models\OverlastMelding::STATUS_NIEUW, \App\Models\OverlastMelding::STATUS_IN_BEHANDELING]);
-                }
-            } else {
-                // Standaard alleen nieuwe en in behandeling tonen
-                $query->whereIn('status', [\App\Models\OverlastMelding::STATUS_NIEUW, \App\Models\OverlastMelding::STATUS_IN_BEHANDELING]);
-            }
-
-            // Optionele filter: categorie
-            if ($request->has('categorie') && in_array($request->get('categorie'), \App\Models\OverlastMelding::categories())) {
-                $query->where('categorie', $request->get('categorie'));
-            }
-
-            $perPage = min(max((int)$request->get('per_page', 15), 5), 100);
-            $meldingen = $query->paginate($perPage)->withQueryString();
-
-            return Inertia::render('Beheer/OverlastMeldingen/Index', [
-                'meldingen' => $meldingen,
-                'filters' => [
-                    'status' => $request->get('status', 'all'),
-                    'categorie' => $request->get('categorie', 'all'),
-                    'per_page' => $perPage,
-                ],
-            ]);
-        })->name('index');
-
-        // Detailpagina van melding
-        Route::get('{melding}', function (\App\Models\OverlastMelding $melding) {
-            return Inertia::render('Beheer/OverlastMeldingen/Show', [
-                'melding' => $melding->load('verwerktDoor'),
-            ]);
-        })->name('show');
-
-        // Status update via beheerwebroute (auth + beheerder middleware)
-        Route::patch('{melding}/status', function (Request $request, OverlastMelding $melding) {
-            return app(OverlastMeldingApiController::class)->updateStatus($request, $melding);
-        })->name('update-status');
+        Route::get('/', [OverlastMeldingController::class, 'index'])->name('index');
+        Route::get('{melding}', [OverlastMeldingController::class, 'show'])->name('show');
+        Route::patch('{melding}/status', [OverlastMeldingController::class, 'updateStatus'])->name('update-status');
     });
 });
 
