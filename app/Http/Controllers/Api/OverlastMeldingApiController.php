@@ -223,7 +223,7 @@ class OverlastMeldingApiController extends Controller
         $validated = $request->validate([
             'status' => 'required|in:' . implode(',', OverlastMelding::statuses()),
             'interne_notities' => 'nullable|string|max:1000',
-            'afgewezen_reden' => 'required_if:status,afgewezen|string|max:500',
+            'afgewezen_reden' => 'nullable|required_if:status,afgewezen|string|max:500',
         ]);
 
         try {
