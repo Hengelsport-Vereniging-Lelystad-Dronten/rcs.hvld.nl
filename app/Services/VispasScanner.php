@@ -17,7 +17,9 @@ class VispasScanner
             throw new RuntimeException('OCR.space API key is niet geconfigureerd.');
         }
 
-        $response = Http::withHeaders(['apikey' => $apiKey])
+        $response = Http::withHeaders([
+            'apikey' => $apiKey,
+        ])
             ->timeout(30)
             ->retry(2, 300)
             ->attach(
@@ -46,12 +48,16 @@ class VispasScanner
     {
         $message = $exception->getMessage();
 
-        if (str_contains($message, 'status code 403')) {
+        if (str_contains($message, 'status code 403') || str_contains($message, 'denied access')) {
             return 'Foto opgeslagen, maar OCR.space weigert toegang voor de ingestelde API-key.';
         }
 
         if (str_contains($message, 'status code 429')) {
             return 'Foto opgeslagen, maar OCR.space heeft tijdelijk geen capaciteit of quota beschikbaar.';
+        }
+
+        if (str_contains($message, 'status code 404')) {
+            return 'Foto opgeslagen, maar de OCR.space endpoint-instelling klopt niet.';
         }
 
         if (str_contains($message, 'OCR.space API key is niet geconfigureerd')) {
@@ -90,8 +96,20 @@ class VispasScanner
                     $score -= 30;
                 }
 
-                $candidates[] = ['digits' => $digits, 'score' => $score, 'line' => $index];
+                $candidates[] = [
+                    'digits' => $digits,
+                    'score' => $score,
+                    'line' => $index,
+                ];
             }
+        }
+
+        if ($candidates === []) {
+            preg_match_all('/\d{6,16}/', preg_replace('/\s+/', '', $text), $matches);
+            $candidates = array_map(
+                fn (string $digits) => ['digits' => $digits, 'score' => strlen($digits), 'line' => 999],
+                $matches[0] ?? []
+            );
         }
 
         usort($candidates, fn (array $a, array $b) => $b['score'] <=> $a['score'] ?: $a['line'] <=> $b['line']);
@@ -103,7 +121,8 @@ class VispasScanner
     {
         if (($response['IsErroredOnProcessing'] ?? false) === true) {
             $message = $response['ErrorMessage'] ?? 'OCR.space kon de afbeelding niet verwerken.';
-            throw new RuntimeException(is_array($message) ? implode(' ', $message) : $message);
+            $message = is_array($message) ? implode(' ', $message) : $message;
+            throw new RuntimeException($message);
         }
 
         $text = '';

@@ -59,6 +59,13 @@ Route::get('/security', function () {
     return Inertia::render('Security');
 })->name('security');
 
+Route::get('/session/keep-alive', function () {
+    return response()->json([
+        'csrf_token' => csrf_token(),
+        'authenticated' => auth()->check(),
+    ]);
+})->name('session.keep-alive');
+
 // Overlast Meldingen (Publiek meldformulier voor sportvisserij en dierenwelzijn)
 Route::prefix('/overlast-meldingen')->name('overlast-meldingen.')->group(function () {
     // Formulier pagina

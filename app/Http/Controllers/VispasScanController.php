@@ -44,6 +44,15 @@ class VispasScanController extends Controller
             ]);
         }
 
+        activity()
+            ->performedOn($ronde)
+            ->withProperties([
+                'vispas_foto_path' => $path,
+                'vispas_nummer_gevonden' => (bool) $scan['vispas_nummer'],
+                'scan_confidence' => $scan['confidence'],
+            ])
+            ->log('VISpas foto geupload en gescand');
+
         return response()->json([
             'path' => $path,
             'url' => Storage::disk('public')->url($path),
