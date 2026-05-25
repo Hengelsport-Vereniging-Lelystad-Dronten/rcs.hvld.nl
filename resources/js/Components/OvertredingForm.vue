@@ -364,7 +364,7 @@ const submitOvertreding = () => {
 
                     <div v-if="vispasPhotoPreviewUrl || uploadedVispasUrl" class="mt-3 flex items-start gap-3">
                         <img
-                            :src="uploadedVispasUrl || vispasPhotoPreviewUrl"
+                            :src="vispasPhotoPreviewUrl || uploadedVispasUrl"
                             alt="Gescande VISpas"
                             class="h-24 w-36 rounded border border-gray-300 object-cover"
                         />
