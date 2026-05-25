@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Laravel\Facades\Image; // Zorg dat deze package geïnstalleerd is
 
 class VispasScanController extends Controller
 {
@@ -22,18 +23,25 @@ class VispasScanController extends Controller
         $this->authorizeRondeAccess($ronde);
 
         if ($ronde->status !== ControleRonde::STATUS_ACTIEF) {
-            return response()->json([
-                'message' => 'Een VISpas kan alleen bij een actieve ronde worden gescand.',
-            ], 422);
+            return response()->json(['message' => 'Een VISpas kan alleen bij een actieve ronde worden gescand.'], 422);
         }
 
         $file = $request->file('foto');
+        
+        // 1. OPTIMALISATIE: Verklein de afbeelding in het geheugen voor de scanner
+        // Dit voorkomt 413-fouten bij de externe API.
+        $optimizedImage = Image::read($file->getPathname());
+        $optimizedImage->scale(width: 1200); // Schaal breedte naar 1200px, behoud ratio
+        
+        // 2. Sla de originele foto op (voor archief)
         $path = $file->store("vispassen/ronde-{$ronde->id}", 'public');
+        
         $scan = ['vispas_nummer' => null, 'confidence' => 0];
         $scanError = null;
 
         try {
-            $scan = $scanner->scan($file);
+            // Gebruik de geoptimaliseerde stream/data voor de scanner
+            $scan = $scanner->scan($optimizedImage);
         } catch (\Throwable $exception) {
             $scanError = $scanner->errorMessageFor($exception);
 
