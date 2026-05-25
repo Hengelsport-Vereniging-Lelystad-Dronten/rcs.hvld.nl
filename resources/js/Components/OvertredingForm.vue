@@ -43,6 +43,11 @@ const recidiveStatus = ref('');
 const isRecidivist = ref(false);
 const recidiveCount = ref(0);
 const suggestedMaatregel = ref('');
+const isVispasScanLoading = ref(false);
+const vispasScanStatus = ref('');
+const vispasScanError = ref('');
+const vispasPhotoPreviewUrl = ref('');
+const uploadedVispasUrl = ref('');
 const aanleidingType = ref('');
 const aanleidingToelichting = ref('');
 const middelType = ref('');
@@ -79,6 +84,8 @@ const form = useForm({
 
     // --- Overige velden ---
     vispasnummer: '',
+    vispas_foto_path: '',
+    vispas_scan_confidence: null,
     vispas_ingenomen: false,
     details: '',
 });
@@ -117,6 +124,81 @@ const resetStructuredFields = () => {
     middelToelichting.value = '';
     form.aanleiding = '';
     form.middel = '';
+};
+
+const getCsrfToken = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+const handleVispasPhoto = (event) => {
+    const file = event.target.files?.[0];
+    if (file) {
+        scanVispasPhoto(file);
+    }
+    event.target.value = '';
+};
+
+const clearVispasPhoto = () => {
+    form.vispas_foto_path = '';
+    form.vispas_scan_confidence = null;
+    uploadedVispasUrl.value = '';
+    vispasScanStatus.value = '';
+    vispasScanError.value = '';
+
+    if (vispasPhotoPreviewUrl.value) {
+        URL.revokeObjectURL(vispasPhotoPreviewUrl.value);
+        vispasPhotoPreviewUrl.value = '';
+    }
+};
+
+const scanVispasPhoto = async (file) => {
+    vispasScanError.value = '';
+    vispasScanStatus.value = 'Foto uploaden en VISpasnummer uitlezen...';
+    isVispasScanLoading.value = true;
+
+    if (vispasPhotoPreviewUrl.value) {
+        URL.revokeObjectURL(vispasPhotoPreviewUrl.value);
+    }
+    vispasPhotoPreviewUrl.value = URL.createObjectURL(file);
+
+    const payload = new FormData();
+    payload.append('controle_ronde_id', props.ronde.id);
+    payload.append('foto', file);
+
+    try {
+        const response = await fetch(route('vispas.scan'), {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': getCsrfToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: payload,
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'VISpas foto scannen is mislukt.');
+        }
+
+        form.vispas_foto_path = data.path || '';
+        form.vispas_scan_confidence = data.confidence ?? null;
+        uploadedVispasUrl.value = data.url || '';
+
+        if (data.vispas_nummer) {
+            form.vispasnummer = data.vispas_nummer;
+            vispasScanStatus.value = `VISpasnummer ingevuld (${data.confidence}% zekerheid).`;
+            return;
+        }
+
+        vispasScanStatus.value = data.message || 'Foto opgeslagen. Vul het VISpasnummer handmatig in.';
+    } catch (error) {
+        console.error('VISpas scan fout:', error);
+        vispasScanError.value = error.message || 'VISpas foto scannen is mislukt.';
+        vispasScanStatus.value = '';
+    } finally {
+        isVispasScanLoading.value = false;
+    }
 };
 
 // ====================================================================
@@ -204,8 +286,9 @@ const submitOvertreding = () => {
         preserveScroll: true,
         onSuccess: () => {
             emit('success');
-            form.reset('vispasnummer', 'details', 'vispas_ingenomen', 'aanleiding', 'middel');
+            form.reset('vispasnummer', 'vispas_foto_path', 'vispas_scan_confidence', 'details', 'vispas_ingenomen', 'aanleiding', 'middel');
             resetStructuredFields();
+            clearVispasPhoto();
             form.geconstateerd_op = getLocalDateTime(); // Reset time to now
             isRecidivist.value = false;
             recidiveStatus.value = '';
@@ -252,8 +335,62 @@ const submitOvertreding = () => {
             <!-- Veld: Vispasnummer MET Recidive Status -->
             <div>
                 <InputLabel for="vispasnummer" value="Vispasnummer (voor recidive-check)" />
-                <TextInput id="vispasnummer" v-model="form.vispasnummer" type="text" class="mt-1 block w-full" autocomplete="off" placeholder="Voer vispasnummer in..." />
+
+                <div class="mt-1 rounded-md border border-gray-200 bg-gray-50 p-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <label class="inline-flex min-h-12 items-center justify-center rounded-md bg-gray-900 px-4 py-3 text-sm font-bold text-white hover:bg-gray-800 cursor-pointer">
+                            VISpas foto maken
+                            <input
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                class="sr-only"
+                                :disabled="isVispasScanLoading"
+                                @change="handleVispasPhoto"
+                            />
+                        </label>
+
+                        <label class="inline-flex min-h-12 items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-100 cursor-pointer">
+                            Foto kiezen
+                            <input
+                                type="file"
+                                accept="image/*"
+                                class="sr-only"
+                                :disabled="isVispasScanLoading"
+                                @change="handleVispasPhoto"
+                            />
+                        </label>
+                    </div>
+
+                    <div v-if="vispasPhotoPreviewUrl || uploadedVispasUrl" class="mt-3 flex items-start gap-3">
+                        <img
+                            :src="uploadedVispasUrl || vispasPhotoPreviewUrl"
+                            alt="Gescande VISpas"
+                            class="h-24 w-36 rounded border border-gray-300 object-cover"
+                        />
+                        <div class="text-sm">
+                            <p v-if="form.vispas_foto_path" class="font-medium text-gray-800">Foto opgeslagen bij deze registratie.</p>
+                            <p v-if="form.vispas_scan_confidence !== null" class="text-gray-600">Scanzekerheid: {{ form.vispas_scan_confidence }}%</p>
+                            <button
+                                v-if="form.vispas_foto_path"
+                                type="button"
+                                @click="clearVispasPhoto"
+                                :disabled="isVispasScanLoading"
+                                class="mt-2 text-sm font-semibold text-red-700 hover:underline disabled:opacity-50"
+                            >
+                                Foto verwijderen
+                            </button>
+                        </div>
+                    </div>
+
+                    <p v-if="vispasScanStatus" class="mt-2 text-sm text-blue-700">{{ vispasScanStatus }}</p>
+                    <p v-if="vispasScanError" class="mt-2 text-sm text-red-600">{{ vispasScanError }}</p>
+                    <InputError :message="form.errors.vispas_foto_path" class="mt-2" />
+                </div>
+
+                <TextInput id="vispasnummer" v-model="form.vispasnummer" type="text" class="mt-3 block w-full" autocomplete="off" placeholder="Controleer of vul vispasnummer in..." />
                 <InputError :message="form.errors.vispasnummer" class="mt-2" />
+
                 <div class="mt-2 text-sm" :class="{ 'text-blue-500': isRecidiveCheckLoading, 'text-red-600 font-bold': isRecidivist, 'text-green-600': recidiveStatus && !isRecidivist && !isRecidiveCheckLoading }">
                     <span v-if="isRecidiveCheckLoading">Controleren...</span>
                     <span v-else>{{ recidiveStatus || 'Typ een vispasnummer om te controleren.' }}</span>

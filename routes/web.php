@@ -16,6 +16,7 @@ use App\Http\Controllers\AanmeldingController;
 use App\Http\Controllers\ControleRondeController;
 use App\Http\Controllers\VisplannerController;
 use App\Http\Controllers\OvertredingController;
+use App\Http\Controllers\VispasScanController;
 use App\Http\Controllers\WaterQuickAddController;
 use App\Http\Controllers\UitlegController;
 use App\Http\Controllers\FaqController;
@@ -110,6 +111,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/overtredingen', [OvertredingController::class, 'store'])->name('overtredingen.store');
     Route::put('/overtredingen/{overtreding}', [OvertredingController::class, 'update'])->name('overtredingen.update');
     Route::put('/overtredingen/{overtreding}/annuleer', [OvertredingController::class, 'annuleer'])->name('overtredingen.annuleer');
+    Route::post('/vispas/scan', [VispasScanController::class, 'store'])->name('vispas.scan');
 
     // CUSTOM ACTIE: SNEL WATER TOEVOEGEN
     // Route voor een snelle POST-actie om een nieuw water (locatie) toe te voegen vanuit de controle-flow.
