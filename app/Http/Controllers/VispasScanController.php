@@ -8,7 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Laravel\Facades\Image; // Zorg dat deze package geïnstalleerd is
+use Intervention\Image\Facades\Image;
 
 class VispasScanController extends Controller
 {
@@ -30,8 +30,10 @@ class VispasScanController extends Controller
         
         // 1. OPTIMALISATIE: Verklein de afbeelding in het geheugen voor de scanner
         // Dit voorkomt 413-fouten bij de externe API.
-        $optimizedImage = Image::read($file->getPathname());
-        $optimizedImage->scale(width: 1200); // Schaal breedte naar 1200px, behoud ratio
+        $optimizedImage = Image::make($file);
+        $optimizedImage->resize(1200, null, function ($constraint) {
+            $constraint->aspectRatio();
+        });
         
         // 2. Sla de originele foto op (voor archief)
         $path = $file->store("vispassen/ronde-{$ronde->id}", 'public');
