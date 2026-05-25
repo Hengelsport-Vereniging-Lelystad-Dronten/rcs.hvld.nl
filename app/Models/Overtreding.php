@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Model: Overtreding
@@ -33,6 +34,8 @@ class Overtreding extends Model
         'aanleiding',
         'middel',
         'vispasnummer',
+        'vispas_foto_path',
+        'vispas_scan_confidence',
         'genomen_maatregel',
         'details',
         'vispas_ingenomen',
@@ -55,6 +58,7 @@ class Overtreding extends Model
     protected $appends = [
         'resolved_locatie',
         'resolved_locatie_naam',
+        'vispas_foto_url',
     ];
 
     /**
@@ -158,5 +162,14 @@ class Overtreding extends Model
             ?? $locatie['locatie_omschrijving']
             ?? $locatie['omschrijving']
             ?? 'Geen locatie';
+    }
+
+    public function getVispasFotoUrlAttribute(): ?string
+    {
+        if (!$this->vispas_foto_path) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($this->vispas_foto_path);
     }
 }

@@ -43,6 +43,15 @@ const recidiveStatus = ref('');
 const isRecidivist = ref(false);
 const recidiveCount = ref(0);
 const suggestedMaatregel = ref('');
+const isCameraOpen = ref(false);
+const isScanLoading = ref(false);
+const scanStatus = ref('');
+const scanError = ref('');
+const videoRef = ref(null);
+const canvasRef = ref(null);
+const cameraStream = ref(null);
+const photoPreviewUrl = ref('');
+const uploadedVispasUrl = ref('');
 const aanleidingType = ref('');
 const aanleidingToelichting = ref('');
 const middelType = ref('');
@@ -79,6 +88,8 @@ const form = useForm({
 
     // --- Overige velden ---
     vispasnummer: '',
+    vispas_foto_path: '',
+    vispas_scan_confidence: null,
     vispas_ingenomen: false,
     details: '',
 });
@@ -117,6 +128,136 @@ const resetStructuredFields = () => {
     middelToelichting.value = '';
     form.aanleiding = '';
     form.middel = '';
+};
+
+const getCsrfToken = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+const stopCamera = () => {
+    if (cameraStream.value) {
+        cameraStream.value.getTracks().forEach(track => track.stop());
+        cameraStream.value = null;
+    }
+    isCameraOpen.value = false;
+};
+
+const openCamera = async () => {
+    scanError.value = '';
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+        scanError.value = 'Camera is niet beschikbaar op dit apparaat. Gebruik upload als alternatief.';
+        return;
+    }
+
+    try {
+        cameraStream.value = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: { ideal: 'environment' },
+                width: { ideal: 1600 },
+                height: { ideal: 1000 },
+            },
+            audio: false,
+        });
+        isCameraOpen.value = true;
+
+        requestAnimationFrame(() => {
+            if (videoRef.value) {
+                videoRef.value.srcObject = cameraStream.value;
+            }
+        });
+    } catch (error) {
+        console.error('Camera openen mislukt:', error);
+        scanError.value = 'Camera openen is niet gelukt. Controleer cameratoegang of gebruik upload.';
+    }
+};
+
+const capturePhoto = () => {
+    const video = videoRef.value;
+    const canvas = canvasRef.value;
+
+    if (!video || !canvas) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob((blob) => {
+        if (!blob) {
+            scanError.value = 'Foto maken is niet gelukt.';
+            return;
+        }
+
+        const file = new File([blob], `vispas-${Date.now()}.jpg`, { type: 'image/jpeg' });
+        stopCamera();
+        scanVispasFile(file);
+    }, 'image/jpeg', 0.9);
+};
+
+const handlePhotoInput = (event) => {
+    const file = event.target.files?.[0];
+    if (file) {
+        scanVispasFile(file);
+    }
+    event.target.value = '';
+};
+
+const clearVispasPhoto = () => {
+    form.vispas_foto_path = '';
+    form.vispas_scan_confidence = null;
+    uploadedVispasUrl.value = '';
+    photoPreviewUrl.value = '';
+    scanStatus.value = '';
+    scanError.value = '';
+};
+
+const scanVispasFile = async (file) => {
+    scanError.value = '';
+    scanStatus.value = 'Foto uploaden en VISpasnummer uitlezen...';
+    isScanLoading.value = true;
+
+    if (photoPreviewUrl.value) {
+        URL.revokeObjectURL(photoPreviewUrl.value);
+    }
+    photoPreviewUrl.value = URL.createObjectURL(file);
+
+    const payload = new FormData();
+    payload.append('controle_ronde_id', props.ronde.id);
+    payload.append('foto', file);
+
+    try {
+        const response = await fetch('/vispas/scan', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': getCsrfToken(),
+                'Accept': 'application/json',
+            },
+            body: payload,
+            credentials: 'same-origin',
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'VISpas scan is mislukt.');
+        }
+
+        form.vispas_foto_path = data.path || '';
+        form.vispas_scan_confidence = data.confidence ?? null;
+        uploadedVispasUrl.value = data.url || '';
+
+        if (data.vispas_nummer) {
+            form.vispasnummer = data.vispas_nummer;
+            scanStatus.value = `VISpasnummer ingevuld (${data.confidence}% zekerheid).`;
+        } else {
+            scanStatus.value = data.message || 'Foto opgeslagen. Controleer en vul het VISpasnummer handmatig in.';
+        }
+    } catch (error) {
+        console.error('VISpas scan fout:', error);
+        scanError.value = error.message || 'VISpas scan is mislukt.';
+        scanStatus.value = '';
+    } finally {
+        isScanLoading.value = false;
+    }
 };
 
 // ====================================================================
@@ -204,8 +345,9 @@ const submitOvertreding = () => {
         preserveScroll: true,
         onSuccess: () => {
             emit('success');
-            form.reset('vispasnummer', 'details', 'vispas_ingenomen', 'aanleiding', 'middel');
+            form.reset('vispasnummer', 'vispas_foto_path', 'vispas_scan_confidence', 'details', 'vispas_ingenomen', 'aanleiding', 'middel');
             resetStructuredFields();
+            clearVispasPhoto();
             form.geconstateerd_op = getLocalDateTime(); // Reset time to now
             isRecidivist.value = false;
             recidiveStatus.value = '';
@@ -254,11 +396,89 @@ const submitOvertreding = () => {
                 <InputLabel for="vispasnummer" value="Vispasnummer (voor recidive-check)" />
                 <TextInput id="vispasnummer" v-model="form.vispasnummer" type="text" class="mt-1 block w-full" autocomplete="off" placeholder="Voer vispasnummer in..." />
                 <InputError :message="form.errors.vispasnummer" class="mt-2" />
+
+                <div class="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3">
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button
+                            type="button"
+                            @click="openCamera"
+                            :disabled="isScanLoading"
+                            class="inline-flex justify-center items-center px-3 py-2 bg-gray-900 text-white text-sm font-semibold rounded-md hover:bg-gray-800 disabled:opacity-50"
+                        >
+                            Foto maken
+                        </button>
+                        <label class="inline-flex justify-center items-center px-3 py-2 bg-white text-gray-800 text-sm font-semibold rounded-md border border-gray-300 hover:bg-gray-100 cursor-pointer">
+                            Foto uploaden
+                            <input
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                class="sr-only"
+                                :disabled="isScanLoading"
+                                @change="handlePhotoInput"
+                            />
+                        </label>
+                        <button
+                            v-if="form.vispas_foto_path"
+                            type="button"
+                            @click="clearVispasPhoto"
+                            :disabled="isScanLoading"
+                            class="inline-flex justify-center items-center px-3 py-2 bg-white text-gray-700 text-sm font-semibold rounded-md border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+                        >
+                            Foto verwijderen
+                        </button>
+                    </div>
+
+                    <div v-if="photoPreviewUrl || uploadedVispasUrl" class="mt-3 flex items-start gap-3">
+                        <img
+                            :src="uploadedVispasUrl || photoPreviewUrl"
+                            alt="Gescande VISpas"
+                            class="h-24 w-36 rounded border border-gray-300 object-cover"
+                        />
+                        <div class="text-sm">
+                            <p v-if="form.vispas_foto_path" class="font-medium text-gray-800">Foto opgeslagen bij deze registratie.</p>
+                            <p v-if="form.vispas_scan_confidence !== null" class="text-gray-600">Scanzekerheid: {{ form.vispas_scan_confidence }}%</p>
+                        </div>
+                    </div>
+
+                    <p v-if="scanStatus" class="mt-2 text-sm text-blue-700">{{ scanStatus }}</p>
+                    <p v-if="scanError" class="mt-2 text-sm text-red-600">{{ scanError }}</p>
+                    <InputError :message="form.errors.vispas_foto_path" class="mt-2" />
+                </div>
+
                 <div class="mt-2 text-sm" :class="{ 'text-blue-500': isRecidiveCheckLoading, 'text-red-600 font-bold': isRecidivist, 'text-green-600': recidiveStatus && !isRecidivist && !isRecidiveCheckLoading }">
                     <span v-if="isRecidiveCheckLoading">Controleren...</span>
                     <span v-else>{{ recidiveStatus || 'Typ een vispasnummer om te controleren.' }}</span>
                 </div>
             </div>
+
+            <div v-if="isCameraOpen" class="fixed inset-0 z-50 bg-black/90 p-4 flex flex-col">
+                <div class="mx-auto flex w-full max-w-lg flex-1 flex-col">
+                    <div class="mb-3 flex items-center justify-between text-white">
+                        <h4 class="text-base font-semibold">Positioneer de VISpas binnen het kader</h4>
+                        <button type="button" @click="stopCamera" class="rounded-md px-3 py-2 text-sm font-semibold bg-white/10 hover:bg-white/20">
+                            Sluiten
+                        </button>
+                    </div>
+
+                    <div class="relative flex-1 overflow-hidden rounded-md bg-black">
+                        <video ref="videoRef" autoplay playsinline muted class="h-full w-full object-cover"></video>
+                        <div class="pointer-events-none absolute inset-0 flex items-center justify-center p-5">
+                            <div class="aspect-[1.58/1] w-full max-w-md rounded-md border-4 border-white shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]"></div>
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        @click="capturePhoto"
+                        class="mt-4 w-full rounded-md bg-white px-4 py-3 text-sm font-bold text-gray-900 hover:bg-gray-100"
+                    >
+                        Foto gebruiken
+                    </button>
+                </div>
+            </div>
+
+            <canvas ref="canvasRef" class="hidden"></canvas>
 
             <!-- WAAROM: Aanleiding -->
             <div>
