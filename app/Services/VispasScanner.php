@@ -3,13 +3,12 @@
 namespace App\Services;
 
 use Illuminate\Http\Client\RequestException;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 class VispasScanner
 {
-    public function scan(UploadedFile $image): array
+    public function scan(string $imagePath): array
     {
         $apiKey = config('services.ocrspace.api_key');
 
@@ -24,8 +23,8 @@ class VispasScanner
             ->retry(2, 300)
             ->attach(
                 'file',
-                file_get_contents($image->getRealPath()),
-                $image->getClientOriginalName() ?: 'vispas.jpg'
+                file_get_contents($imagePath),
+                str_contains(basename($imagePath), '.') ? basename($imagePath) : basename($imagePath) . '.jpg'
             )
             ->post(config('services.ocrspace.endpoint'), [
                 'language' => config('services.ocrspace.language', 'eng'),

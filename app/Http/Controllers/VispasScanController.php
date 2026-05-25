@@ -8,8 +8,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Facades\Image;
-
 class VispasScanController extends Controller
 {
     public function store(Request $request, VispasScanner $scanner): JsonResponse
@@ -28,22 +26,29 @@ class VispasScanController extends Controller
 
         $file = $request->file('foto');
         
-        // 1. OPTIMALISATIE: Verklein de afbeelding in het geheugen voor de scanner
-        // Dit voorkomt 413-fouten bij de externe API.
-        $optimizedImage = Image::make($file);
-        $optimizedImage->resize(1200, null, function ($constraint) {
-            $constraint->aspectRatio();
-        });
-        
         // 2. Sla de originele foto op (voor archief)
         $path = $file->store("vispassen/ronde-{$ronde->id}", 'public');
         
+        // 1. OPTIMALISATIE: Verklein de afbeelding met native GD voor de scanner
+        // We maken een tijdelijk bestand aan voor de geoptimaliseerde versie
+        $optimizedPath = tempnam(sys_get_temp_dir(), 'vispas_scan_');
+        $sourceImage = imagecreatefromstring(file_get_contents($file->getRealPath()));
+        
+        if ($sourceImage) {
+            $scaledImage = imagescale($sourceImage, 1200); // Schalen naar 1200px breed, ratio blijft behouden
+            imagejpeg($scaledImage, $optimizedPath, 80); // Opslaan als JPG met 80% kwaliteit
+            imagedestroy($sourceImage);
+            imagedestroy($scaledImage);
+        } else {
+            $optimizedPath = $file->getRealPath(); // Fallback naar origineel als GD faalt
+        }
+
         $scan = ['vispas_nummer' => null, 'confidence' => 0];
         $scanError = null;
 
         try {
-            // Gebruik de geoptimaliseerde stream/data voor de scanner
-            $scan = $scanner->scan($optimizedImage);
+            // Geef het pad van het geoptimaliseerde bestand door aan de scanner
+            $scan = $scanner->scan($optimizedPath);
         } catch (\Throwable $exception) {
             $scanError = $scanner->errorMessageFor($exception);
 
@@ -52,6 +57,10 @@ class VispasScanController extends Controller
                 'path' => $path,
                 'exception' => $exception->getMessage(),
             ]);
+        } finally {
+            if ($optimizedPath !== $file->getRealPath()) {
+                @unlink($optimizedPath);
+            }
         }
 
         activity()
