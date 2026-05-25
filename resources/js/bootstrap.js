@@ -13,3 +13,44 @@ if (token) {
 } else {
     console.error('CSRF token not found: https://laravel.com/docs/csrf#csrf-x-csrf-token');
 }
+
+const refreshCsrfToken = (csrfToken) => {
+    if (!csrfToken) return;
+
+    const metaToken = document.head.querySelector('meta[name="csrf-token"]');
+    if (metaToken) {
+        metaToken.setAttribute('content', csrfToken);
+    }
+
+    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
+};
+
+const keepSessionAlive = async () => {
+    if (document.visibilityState === 'hidden') {
+        return;
+    }
+
+    try {
+        const response = await fetch('/session/keep-alive', {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        });
+
+        if (!response.ok) {
+            return;
+        }
+
+        const data = await response.json();
+        refreshCsrfToken(data.csrf_token);
+    } catch (error) {
+        console.warn('Sessie actief houden is mislukt:', error);
+    }
+};
+
+if (token) {
+    window.setInterval(keepSessionAlive, 10 * 60 * 1000);
+}

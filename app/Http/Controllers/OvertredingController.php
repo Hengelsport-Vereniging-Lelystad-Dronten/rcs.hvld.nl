@@ -75,6 +75,8 @@ class OvertredingController extends Controller
                     'aanleiding',
                     'middel',
                     'vispasnummer',
+                    'vispas_foto_path',
+                    'vispas_scan_confidence',
                     'genomen_maatregel',
                     'vispas_ingenomen',
                     'status',

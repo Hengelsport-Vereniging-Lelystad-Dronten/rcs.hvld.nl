@@ -102,6 +102,19 @@ Volg deze stappen om de applicatie lokaal te installeren en op te starten:
 
 De applicatie is nu lokaal bereikbaar, meestal op `http://127.0.0.1:8000`.
 
+### VISpas OCR configuratie
+
+Voor het scannen van VISpasfoto's tijdens het aanmelden van een overtreding gebruikt de applicatie OCR.space. De gratis testkey `helloworld` werkt voor beperkte tests; voor normaal gebruik kan een eigen gratis OCR.space key worden ingevuld.
+
+```env
+OCRSPACE_API_KEY=helloworld
+OCRSPACE_ENDPOINT=https://api.ocr.space/Parse/Image
+OCRSPACE_LANGUAGE=eng
+OCRSPACE_ENGINE=2
+```
+
+De upload wordt opgeslagen op de `public` disk onder `vispassen/ronde-{id}`. Zorg in productie dat `php artisan storage:link` is uitgevoerd, zodat bewijsfoto's via de bestaande storage-route bekeken kunnen worden.
+
 ## 6. Kern Data Definities (Seeders)
 
 De meegeleverde seeders zijn cruciaal voor de werking van het advies- en registratiesysteem.

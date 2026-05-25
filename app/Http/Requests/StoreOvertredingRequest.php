@@ -49,6 +49,8 @@ class StoreOvertredingRequest extends FormRequest
 
             // Overige velden
             'vispasnummer' => ['nullable', 'string', 'max:50'],
+            'vispas_foto_path' => ['nullable', 'string', 'max:255', 'starts_with:vispassen/'],
+            'vispas_scan_confidence' => ['nullable', 'integer', 'min:0', 'max:100'],
             'details' => ['nullable', 'string'],
             'vispas_ingenomen' => ['required', 'boolean'],
         ];

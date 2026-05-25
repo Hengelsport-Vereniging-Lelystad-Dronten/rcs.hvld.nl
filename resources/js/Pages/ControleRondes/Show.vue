@@ -396,6 +396,20 @@ const slaRondeOp = () => {
                             <p v-if="overtreding.vispasnummer" class="text-sm text-gray-700">
                                 <span class="font-semibold">Vispasnr:</span> {{ overtreding.vispasnummer }}
                             </p>
+                            <p v-if="overtreding.vispas_foto_url" class="text-sm text-gray-700">
+                                <span class="font-semibold">VISpas foto:</span>
+                                <a
+                                    :href="overtreding.vispas_foto_url"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="text-indigo-700 hover:underline"
+                                >
+                                    Bekijk bewijs
+                                </a>
+                                <span v-if="overtreding.vispas_scan_confidence !== null" class="text-xs text-gray-500">
+                                    (scan {{ overtreding.vispas_scan_confidence }}%)
+                                </span>
+                            </p>
                             <p v-if="overtreding.vispas_ingenomen" class="text-sm text-red-700 font-bold">
                                 <span class="font-semibold">Status:</span> VISpas Ingenomen
                             </p>
