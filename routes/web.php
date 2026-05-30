@@ -1,17 +1,5 @@
 <?php
 
-/**
- * routes/web.php
- *
- * Register web routes voor de applicatie.
- *
- * Dit bestand bevat de routes die HTML/Inertia-views teruggeven
- * en typische webmiddleware (sessies, CSRF, auth) gebruiken.
- * Commentaar en secties in dit bestand zijn in het Nederlands
- * om snellere navigatie en onderhoud door het team te ondersteunen.
- */
-
-
 use App\Http\Controllers\AanmeldingController;
 use App\Http\Controllers\ControleRondeController;
 use App\Http\Controllers\VisplannerController;
@@ -22,42 +10,22 @@ use App\Http\Controllers\UitlegController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\KaartController;
 use App\Http\Controllers\Beheer\AuditLogController;
 use App\Http\Controllers\Beheer\OverlastMeldingController;
 use App\Http\Controllers\Beheer\StrafmaatController;
 use App\Http\Controllers\Beheer\ReportsController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-// Zorg ervoor dat de controller geïmporteerd is voor gebruik buiten de closures
 
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Hier worden alle webroutes van de applicatie geregistreerd.
-| De routes worden geladen door de RouteServiceProvider binnen een groep
-| die de sessiestatus, CSRF-beveiliging en andere standaardmiddleware bevat.
-|
-*/
-
+// =============================
 // PUBLIEKE ROUTES
-// Publieke waterkaart, toegankelijk zonder inloggen.
+// =============================
+
 Route::get('/visplanner', [VisplannerController::class, 'index'])->name('visplanner.index');
 
-// Privacyverklaring
-Route::get('/privacy', function () {
-    return Inertia::render('Privacy');
-})->name('privacy');
-
-// Security / Responsible Disclosure
-Route::get('/security', function () {
-    return Inertia::render('Security');
-})->name('security');
+Route::view('/privacy', 'Privacy')->name('privacy');
+Route::view('/security', 'Security')->name('security');
 
 Route::get('/session/keep-alive', function () {
     return response()->json([
@@ -66,154 +34,148 @@ Route::get('/session/keep-alive', function () {
     ]);
 })->name('session.keep-alive');
 
-// Overlast Meldingen (Publiek meldformulier voor sportvisserij en dierenwelzijn)
-Route::prefix('/overlast-meldingen')->name('overlast-meldingen.')->group(function () {
-    // Formulier pagina
+
+// Overlast meldingen (publiek)
+Route::prefix('overlast-meldingen')->name('overlast-meldingen.')->group(function () {
+
     Route::get('/', function () {
         return Inertia::render('OverlastMeldingen/Create', [
             'categories' => \App\Models\OverlastMelding::categories(),
         ]);
     })->name('create');
 
-    // Bedankt pagina
-    Route::get('/bedankt', function () {
-        return Inertia::render('OverlastMeldingen/Bedankt');
-    })->name('bedankt');
+    Route::get('/bedankt', fn () => Inertia::render('OverlastMeldingen/Bedankt'))
+        ->name('bedankt');
 });
 
-// Aanmeldformulier Sportvisserijcontroleur
+
+// Aanmeldingen
 Route::get('/aanmeldformulier', [AanmeldingController::class, 'create'])->name('aanmelden.create');
 Route::post('/aanmeldformulier', [AanmeldingController::class, 'store'])->name('aanmelden.store');
 Route::get('/aanmeldformulier/bedankt', [AanmeldingController::class, 'bedankt'])->name('aanmelden.bedankt');
 
-// --- GROEP 1: Basis en Functionele Routes voor ELKE ingelogde gebruiker ---
-// Deze groep combineert de basisfunctionaliteit (Dashboard/Profiel) en de
-// dagelijkse taken (Controles, Overtredingen). Er is GEEN verplichte
-// e-mailverificatie ('verified') meer nodig na de login, aangezien de
-// accounts handmatig worden beheerd/geprovisioneerd.
+
+// =============================
+// AUTH GROUP
+// =============================
+
 Route::middleware('auth')->group(function () {
-    // Standaard root route ('/'). Dit is het hoofddashboard dat toegankelijk is voor elke ingelogde gebruiker.
+
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Profiel bewerken: Toont het formulier om profielgegevens aan te passen.
+    // Profiel
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    // Profiel bijwerken: Verwerkt de PATCH-request om profielgegevens op te slaan.
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    // Profiel verwijderen: Verwerkt de DELETE-request om het account te deactiveren/verwijderen.
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // --- CONTROLE EN RAPPORTAGE FUNCTIONALITEIT ---
-
-    // CONTROLE RONDES (Index, Show, Store, Update, Destroy)
-    // Bevat routes voor het overzicht, starten, bekijken en bewerken van controlerondes.
+    // Controle rondes
     Route::resource('controles', ControleRondeController::class);
 
-    // CUSTOM ACTIE: RONDE AFRONDEN
-    // Route om een specifieke controleronde officieel af te ronden (PUT/UPDATE actie).
     Route::put('controles/{controle_ronde}/afronden', [ControleRondeController::class, 'afronden'])
         ->name('controles.afronden');
 
-    // OVERTREDINGEN (Alleen de store-actie)
-    // Route voor het aanmaken van een nieuwe overtreding (POST) binnen een controleronde.
+    // Overtredingen
     Route::post('/overtredingen', [OvertredingController::class, 'store'])->name('overtredingen.store');
     Route::put('/overtredingen/{overtreding}', [OvertredingController::class, 'update'])->name('overtredingen.update');
     Route::put('/overtredingen/{overtreding}/annuleer', [OvertredingController::class, 'annuleer'])->name('overtredingen.annuleer');
+
     Route::post('/vispas/scan', [VispasScanController::class, 'store'])->name('vispas.scan');
 
-    // CUSTOM ACTIE: SNEL WATER TOEVOEGEN
-    // Route voor een snelle POST-actie om een nieuw water (locatie) toe te voegen vanuit de controle-flow.
-    Route::post('/waters/store-quick', [WaterQuickAddController::class, 'store'])->name('waters.store-quick');
+    Route::post('/waters/store-quick', [WaterQuickAddController::class, 'store'])
+        ->name('waters.store-quick');
 
-    // UITLEG SECTIE
-    Route::get('/uitleg', [UitlegController::class, 'index'])->name('uitleg.index');
-    Route::get('/uitleg/kaart', [UitlegController::class, 'kaart'])->name('uitleg.kaart');
-    Route::get('/uitleg/faq', [FaqController::class, 'index'])->name('uitleg.faq');
-    Route::get('/uitleg/overtredingen', [UitlegController::class, 'overtredingen'])->name('uitleg.overtredingen');
-    Route::get('/uitleg/handleidingen', [UitlegController::class, 'handleidingen'])->name('uitleg.handleidingen');
+    // Uitleg
+    Route::prefix('uitleg')->name('uitleg.')->group(function () {
+        Route::get('/', [UitlegController::class, 'index'])->name('index');
+        Route::get('/kaart', [UitlegController::class, 'kaart'])->name('kaart');
+        Route::get('/faq', [FaqController::class, 'index'])->name('faq');
+        Route::get('/overtredingen', [UitlegController::class, 'overtredingen'])->name('overtredingen');
+        Route::get('/handleidingen', [UitlegController::class, 'handleidingen'])->name('handleidingen');
+    });
 });
 
 
-// --- GROEP 2: BEHEER GEDEELTE (Management) ---
-// Deze routes vereisen authenticatie ('auth') en de specifieke Laravel "gate" of "policy" genaamd 'beheerder'
-// om de toegang te autoriseren. E-mailverificatie is verwijderd.
-Route::middleware(['auth', 'beheerder'])->group(function () {
-    // Basis Beheer Dashboard: Hoofdpagina voor beheerders met managementoverzichten.
-    Route::get('/beheer', [App\Http\Controllers\BeheerController::class, 'index'])->name('beheer.index');
+// =============================
+// BEHEER (ADMIN)
+// =============================
 
-    // PERIODIEKE RAPPORTAGES
-    // Routes voor beheerders om wekelijks, maandelijks, kwartaal en custom rapporten in te zien en te downloaden.
-    // NIEUW: Statistieken Dashboard (vervangt de oude index)
-    Route::get('beheer/reports', [ReportsController::class, 'index'])->name('beheer.reports.index');
-    // NIEUW: PDF Download voor totaalrapportage
-    Route::get('beheer/reports/download', [ReportsController::class, 'downloadReportPdf'])->name('beheer.reports.download');
-    // NIEUW: Detailpagina voor recidivisten
-    Route::get('beheer/reports/recidivist/{vispasnummer}', [ReportsController::class, 'recidivist'])->name('beheer.reports.recidivist');
-    // NIEUW: PDF Download voor recidivisten
-    Route::get('beheer/reports/recidivist/{vispasnummer}/pdf', [ReportsController::class, 'downloadRecidivistPdf'])->name('beheer.reports.recidivist.pdf');
+Route::middleware(['auth', 'beheerder'])->prefix('beheer')->name('beheer.')->group(function () {
 
-    Route::resource('beheer/reports', \App\Http\Controllers\ReportController::class)
-        ->only(['show', 'destroy'])
-        ->names('beheer.reports');
-    Route::post('/beheer/reports/generate', [\App\Http\Controllers\ReportController::class, 'generate'])->name('beheer.reports.generate');
-    Route::get('/beheer/reports/{report}/download', [\App\Http\Controllers\ReportController::class, 'download'])->name('beheer.reports.download');
-
-    // EXPORT OVERTREDINGEN
-    Route::get('beheer/export-overtredingen', [App\Http\Controllers\BeheerController::class, 'exportOvertredingenIndex'])->name('beheer.export-overtredingen.index');
-    Route::post('beheer/export-overtredingen/preview', [App\Http\Controllers\BeheerController::class, 'exportOvertredingenPreview'])->name('beheer.export-overtredingen.preview');
-    Route::match(['get', 'post'], 'beheer/export-overtredingen/pdf', [App\Http\Controllers\BeheerController::class, 'exportOvertredingenPdf'])->name('beheer.export-overtredingen.pdf');
-    Route::post('beheer/export-overtredingen/reset', [App\Http\Controllers\BeheerController::class, 'resetExportStatus'])->name('beheer.export-overtredingen.reset');
-    Route::patch('beheer/export-overtredingen/{overtreding}/status', [App\Http\Controllers\BeheerController::class, 'updateExportStatus'])->name('beheer.export-overtredingen.update-status');
-
-    // EXPORTS OVERZICHT
-    Route::get('beheer/exports', [App\Http\Controllers\BeheerController::class, 'exportsIndex'])->name('beheer.exports.index');
-    Route::get('beheer/exports/{export}/download', [App\Http\Controllers\BeheerController::class, 'downloadExport'])->name('beheer.exports.download');
+    Route::get('/', [App\Http\Controllers\BeheerController::class, 'index'])->name('index');
 
 
-    // GEBRUIKERS BEHEER (CRUD)
-    // Resource routes voor het beheren van gebruikers (overzicht, aanmaken, bewerken, verwijderen).
-    Route::resource('beheer/users', App\Http\Controllers\Beheer\UserController::class)
-        ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
-        ->names('beheer.users');
+    // === REPORTS ===
 
-    // WATEREN BEHEER (CRUD)
-    // Resource routes voor het beheren van waterlocaties.
-    Route::resource('beheer/waters', App\Http\Controllers\Beheer\WaterController::class)
-        ->names('beheer.waters');
+    Route::prefix('reports')->name('reports.')->group(function () {
 
-    // OVERTREDING TYPES BEHEER (CRUD)
-    // Resource routes voor het beheren van de definities van overtredingstypes.
-    Route::resource('beheer/overtreding_types', App\Http\Controllers\Beheer\OvertredingTypeController::class)
-        ->names('beheer.overtreding_types');
-        
-    // STRAFMATEN BEHEER (CRUD) - INCLUSIEF NIEUWE VOLGORDE ROUTE
-    Route::resource('beheer/strafmaten', StrafmaatController::class) // Gebruik de geimporteerde controller
-        ->names('beheer.strafmaten');
-    
-    /**
-     * ROUTE VOOR DRAG & DROP VOLGORDE
-     * Dit endpoint verwerkt het POST-verzoek van de Vue-component
-     * om de order_id's van de strafmaten in één keer bij te werken.
-     * De route is expliciet gedefinieerd om de 'updateOrder' methode aan te roepen.
-     * NB: Deze moet BINNEN de 'beheerder' middleware groep staan!
-     */
-    Route::post('beheer/strafmaten/order', [StrafmaatController::class, 'updateOrder'])
-        ->name('beheer.strafmaten.updateOrder');
+        Route::get('/', [ReportsController::class, 'index'])->name('index');
 
-    // FAQ BEHEER (CRUD)
-    Route::resource('beheer/faqs', App\Http\Controllers\Beheer\FaqController::class)
-        ->names('beheer.faqs');
+        // ✅ FIX: unieke namen
+        Route::get('/download', [ReportsController::class, 'downloadReportPdf'])
+            ->name('download.all');
 
-    // AUDIT LOG
-    // Route voor het weergeven van het audit log.
-    Route::get('/beheer/auditlog', [AuditLogController::class, 'index'])->name('beheer.auditlog.index');
+        Route::get('/recidivist/{vispasnummer}', [ReportsController::class, 'recidivist'])
+            ->name('recidivist');
 
-    /**
-     * OVERLAST MELDINGEN BEHEER
-     * 
-     * Beheerinterface voor meldingen over sportvisserij en dierenwelzijn.
-     * Beheerders kunnen meldingen inzien, filteren, status wijzigen en afwijzen.
-     */
-    Route::prefix('beheer/overlast-meldingen')->name('beheer.overlast-meldingen.')->group(function () {
+        Route::get('/recidivist/{vispasnummer}/pdf', [ReportsController::class, 'downloadRecidivistPdf'])
+            ->name('recidivist.pdf');
+
+        // Resource (los gehouden)
+        Route::resource('/', \App\Http\Controllers\ReportController::class)
+            ->parameter('', 'report')
+            ->only(['show', 'destroy']);
+
+        Route::post('/generate', [\App\Http\Controllers\ReportController::class, 'generate'])
+            ->name('generate');
+
+        Route::get('/{report}/download', [\App\Http\Controllers\ReportController::class, 'download'])
+            ->name('download.single');
+    });
+
+
+    // === EXPORTS ===
+
+    Route::get('export-overtredingen', [App\Http\Controllers\BeheerController::class, 'exportOvertredingenIndex'])
+        ->name('export-overtredingen.index');
+
+    Route::post('export-overtredingen/preview', [App\Http\Controllers\BeheerController::class, 'exportOvertredingenPreview'])
+        ->name('export-overtredingen.preview');
+
+    Route::match(['get', 'post'], 'export-overtredingen/pdf', [App\Http\Controllers\BeheerController::class, 'exportOvertredingenPdf'])
+        ->name('export-overtredingen.pdf');
+
+    Route::post('export-overtredingen/reset', [App\Http\Controllers\BeheerController::class, 'resetExportStatus'])
+        ->name('export-overtredingen.reset');
+
+    Route::patch('export-overtredingen/{overtreding}/status', [App\Http\Controllers\BeheerController::class, 'updateExportStatus'])
+        ->name('export-overtredingen.update-status');
+
+
+    Route::get('exports', [App\Http\Controllers\BeheerController::class, 'exportsIndex'])
+        ->name('exports.index');
+
+    Route::get('exports/{export}/download', [App\Http\Controllers\BeheerController::class, 'downloadExport'])
+        ->name('exports.download');
+
+
+    // === CRUD ===
+
+    Route::resource('users', App\Http\Controllers\Beheer\UserController::class)->names('users');
+    Route::resource('waters', App\Http\Controllers\Beheer\WaterController::class)->names('waters');
+    Route::resource('overtreding_types', App\Http\Controllers\Beheer\OvertredingTypeController::class)->names('overtreding_types');
+    Route::resource('strafmaten', StrafmaatController::class)->names('strafmaten');
+
+    Route::post('strafmaten/order', [StrafmaatController::class, 'updateOrder'])
+        ->name('strafmaten.updateOrder');
+
+    Route::resource('faqs', App\Http\Controllers\Beheer\FaqController::class)->names('faqs');
+
+
+    // === OVERIGE ===
+
+    Route::get('auditlog', [AuditLogController::class, 'index'])->name('auditlog.index');
+
+    Route::prefix('overlast-meldingen')->name('overlast-meldingen.')->group(function () {
         Route::get('/', [OverlastMeldingController::class, 'index'])->name('index');
         Route::get('{melding}', [OverlastMeldingController::class, 'show'])->name('show');
         Route::patch('{melding}/status', [OverlastMeldingController::class, 'updateStatus'])->name('update-status');
@@ -221,5 +183,8 @@ Route::middleware(['auth', 'beheerder'])->group(function () {
 });
 
 
-// Laadt de routes die nodig zijn voor de Laravel Breeze (of vergelijkbare) authenticatie (login, register, etc.).
+// =============================
+// AUTH ROUTES
+// =============================
+
 require __DIR__.'/auth.php';
